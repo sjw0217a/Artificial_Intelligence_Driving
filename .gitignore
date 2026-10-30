@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+
+# road_builder가 실행할 때마다 다시 만드는 SUMO 파일
+env/sumo/
+
+# 학습 결과와 수집 데이터 (용량이 커서 Hugging Face 등에 따로 올림)
+results/
+data/

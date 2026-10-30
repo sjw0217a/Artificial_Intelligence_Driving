@@ -1,0 +1,7 @@
+# SUMO 본체는 별도 설치 (설치한 SUMO 버전과 traci/sumolib 버전을 맞출 것. 작성 시점 1.27.1)
+numpy
+gymnasium
+torch
+tensorboard    # 선택: 없으면 TensorBoard 로그만 생략됨
+traci
+sumolib
