@@ -33,6 +33,14 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
     """
     os.makedirs(out_dir, exist_ok=True)
 
+    # 영상용 배경 교통(남대문로 직진)이 켜져 있으면 도로·연결을 덧붙인다. 꺼져 있으면 road 그대로
+    bg = traffic.get("background") or {}
+    bg_on = bool(bg.get("enabled", False))
+    if bg_on:
+        road = {**road, "nodes": {**road["nodes"], **bg["nodes"]},
+                "edges": {**road["edges"], **bg["edges"]},
+                "connections": list(road["connections"]) + list(bg["connections"])}
+
     # ──────────────────────────────────────────────────────
     # 1) 노드 파일: 교차로·확폭점·진입/진출 끝점 (road["nodes"])
     #    type="traffic_light" 노드는 신호교차로가 된다.
@@ -49,9 +57,11 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
     # ──────────────────────────────────────────────────────
     with open(os.path.join(out_dir, "highway.edg.xml"), "w") as f:
         f.write("<edges>\n")
-        for eid, (frm, to, lanes) in road["edges"].items():
+        for eid, (frm, to, lanes, *rest) in road["edges"].items():
+            # 4번째 값이 있으면 그 좌표들을 지나는 매끄러운 곡선 도로 (시작·끝은 노드 좌표)
+            shape = f' shape="{" ".join(f"{x:.2f},{y:.2f}" for x, y in _smooth(rest[0]))}"' if rest else ""
             f.write(f'    <edge id="{eid}" from="{frm}" to="{to}" '
-                    f'numLanes="{lanes}" speed="{road["speed_limit"]}"/>\n')
+                    f'numLanes="{lanes}" speed="{road["speed_limit"]}"{shape}/>\n')
         f.write("</edges>\n")
 
     # ──────────────────────────────────────────────────────
@@ -146,7 +156,24 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
     #   OD flow의 period="exp(λ)"는 평균 λ대/초의 무작위(포아송) 도착이라
     #   차들이 뭉쳤다 비었다 하며 들어온다 (등간격보다 현실적).
     def route_edges(od):
-        return f"{od[0]} S1 S2 {od[1]}"
+        """진입 엣지 → 진출 엣지 경로를 road["edges"]의 노드 연결로 찾는다 (BFS).
+        도로망이 바뀌어도(예: 숭례문 쪽 우회 도로가 합류점으로 들어감) 손으로 고칠 필요가 없다."""
+        start, goal = od
+        prev, queue = {start: None}, [start]
+        while queue:
+            e = queue.pop(0)
+            if e == goal:
+                break
+            for nxt, (frm, *_r) in road["edges"].items():
+                if frm == road["edges"][e][1] and nxt not in prev:
+                    prev[nxt] = e
+                    queue.append(nxt)
+        if goal not in prev:
+            raise ValueError(f"경로 없음: {start} → {goal}")
+        path = [goal]
+        while prev[path[-1]] is not None:
+            path.append(prev[path[-1]])
+        return " ".join(reversed(path))
 
     # 크리스마스 시나리오: 교통량을 배율만큼 늘리고, 각 OD flow의 일부를
     #   "구경꾼" flow(f_..._look)로 떼어 구경 구간을 look_speed로 지나가게 한다.
@@ -154,6 +181,10 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
     xmas_on = bool(xmas.get("enabled", False))
     scale = float(xmas.get("traffic_scale", 1.0)) if xmas_on else 1.0
     look_share = float(xmas.get("look_share", 0.0)) if xmas_on else 0.0
+    # 구경 구간: (엣지, 시작 m, 끝 m) 목록. 파사드 앞이 엣지 두 개에 걸쳐서 stop을 이어 붙인다
+    look_stops = "".join(
+        f'        <stop edge="{e}" startPos="{a}" endPos="{b}" speed="{xmas.get("look_speed")}"/>\n'
+        for e, a, b in xmas.get("look_zones", ()))
 
     flow_lines = []
     for ent, vph in traffic["entries"].items():
@@ -163,9 +194,7 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
                 continue
             for suffix, part, extra in (
                     ("", 1.0 - look_share, ""),
-                    ("_look", look_share,
-                     f'        <stop edge="{xmas.get("look_edge")}" startPos="{xmas.get("look_start")}" '
-                     f'endPos="{xmas.get("look_end")}" speed="{xmas.get("look_speed")}"/>\n')):
+                    ("_look", look_share, look_stops)):
                 if part <= 0:
                     continue
                 flow_lines.append(
@@ -175,14 +204,20 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
                     f'        <route edges="{route_edges((ent, ext))}"/>\n'
                     f'{extra}'
                     f'    </flow>')
+    if bg_on:
+        for ent, ext, vph in bg["flows"]:
+            flow_lines.append(
+                f'    <flow id="bg_{ent}" type="{flow_type}" begin="0" end="100000" '
+                f'period="exp({vph * scale / 3600.0:.5f})" departLane="best" departSpeed="max">\n'
+                f'        <route edges="{route_edges((ent, ext))}"/>\n'
+                f'    </flow>')
     bus = traffic.get("bus")
     if bus:
         stop = road["bus_stop"]
-        for (ent, ext), share in bus["routes"].items():
-            rate = bus["vehs_per_hour"] * share / 3600.0
+        for line, (ent, ext, headway) in bus["lines"].items():
             flow_lines.append(
-                f'    <flow id="bus_{ent}_{ext}" type="bus_type" begin="0" end="100000" '
-                f'period="exp({rate:.5f})" departLane="best" departSpeed="max">\n'
+                f'    <flow id="bus_{line}" type="bus_type" begin="0" end="100000" '
+                f'period="exp({1.0 / headway:.5f})" departLane="best" departSpeed="max">\n'
                 f'        <route edges="{route_edges((ent, ext))}"/>\n'
                 f'        <stop busStop="{stop["id"]}" duration="{bus["stop_duration"]}"/>\n'
                 f'    </flow>')
@@ -278,15 +313,38 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
     #    신호 상태 문자열은 "연결(link) 번호 순서"로 써야 하는데, 그 번호는
     #    netconvert가 정하므로 컴파일된 net을 읽어서 만든다.
     # ──────────────────────────────────────────────────────
-    _write_additional(road, net_path, os.path.join(out_dir, "highway.add.xml"))
+    xmas_j1 = xmas.get("signals_J1") if xmas_on else None   # 크리스마스(저녁 8시) ① 신호
+    if bg_on:   # 배경 교통이 있으면 남대문로 직진까지 들어간 ① 신호 전체를 쓴다
+        xmas_j1 = bg["phases_J1_christmas"] if xmas_on else bg["phases_J1"]
+    _write_additional(road, net_path, os.path.join(out_dir, "highway.add.xml"), xmas_j1)
     return cfg_path
 
 
-def _write_additional(road: dict, net_path: str, out_path: str):
+def _smooth(points, step=3.0):
+    """제어점을 모두 지나는 Catmull-Rom 곡선을 약 step(m) 간격 점들로 만든다.
+    위성사진에서 찍은 점 몇 개를 직선으로 이으면 도로가 꺾여 보여서 부드럽게 한다."""
+    import math
+    pts = [points[0]] + list(points) + [points[-1]]    # 양 끝은 같은 점을 한 번 더 써서 곡선이 끝점에서 멈춤
+    out = [points[0]]
+    for i in range(1, len(pts) - 2):
+        p0, p1, p2, p3 = pts[i - 1], pts[i], pts[i + 1], pts[i + 2]
+        n = max(1, int(math.dist(p1, p2) / step))
+        for k in range(1, n + 1):
+            t = k / n
+            out.append(tuple(0.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t
+                                    + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t * t
+                                    + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t ** 3)
+                             for j in (0, 1)))
+    return out
+
+
+def _write_additional(road: dict, net_path: str, out_path: str, j1_override=None):
     """버스정류장과 고정 주기 신호 프로그램을 highway.add.xml로 쓴다.
 
-    J1: 진입 방향마다 녹색 → 황색을 차례로 (같은 소공로로 합류하므로 한 번에 한 방향).
+    J1: 단계마다 (진입로, 녹색 초[, 황색 초]). 진입로를 튜플로 묶으면 함께 녹색,
+        None이면 그 시간 동안 전부 적색. J1_free의 진입로는 신호 없이 항상 녹색.
     J3: 남쪽 방향 녹색 → 황색 → 적색 (적색 = 모델링하지 않은 퇴계로 교차 흐름의 몫).
+        free에 적은 진출 엣지로 가는 연결은 신호 없이 항상 녹색.
     programID를 새로 주면 netconvert가 만든 기본 프로그램 대신 이것이 쓰인다.
     """
     import sumolib
@@ -302,9 +360,6 @@ def _write_additional(road: dict, net_path: str, out_path: str):
             n = max(n, link_no + 1)
         return n, idx
 
-    def state(n, on, ch):
-        return "".join(ch if i in on else "r" for i in range(n))
-
     lines = ["<additional>"]
     bs = road.get("bus_stop")
     if bs:
@@ -312,20 +367,43 @@ def _write_additional(road: dict, net_path: str, out_path: str):
                      f'startPos="{bs["start"]}" endPos="{bs["end"]}" name="신세계백화점"/>')
 
     n, idx = links_by_in_edge("J1")
+    j1_free = set().union(*(idx[e] for e in sig.get("J1_free", ())))
+
+    def j1_state(on, ch):
+        return "".join("G" if i in j1_free else ch if i in on else "r" for i in range(n))
+
     lines.append('    <tlLogic id="J1" type="static" programID="myeongdong" offset="0">')
-    for edge, green in sig["J1"]:
-        on = set(idx[edge])
-        lines.append(f'        <phase duration="{green}" state="{state(n, on, "G")}"/>')
-        lines.append(f'        <phase duration="{yellow}" state="{state(n, on, "y")}"/>')
+    for step in (j1_override or sig["J1"]):
+        if isinstance(step[0], (int, float)):   # (초, 녹색 진입로들, 황색 진입로들) 형식
+            dur, greens, yellows = step
+            g = set().union(*(idx[e] for e in greens)) if greens else set()
+            y = set().union(*(idx[e] for e in yellows)) if yellows else set()
+            st_ = "".join("G" if (i in j1_free or i in g) else "y" if i in y else "r" for i in range(n))
+            lines.append(f'        <phase duration="{dur}" state="{st_}"/>')
+            continue
+        edge, green = step[0], step[1]
+        if edge is None:                                     # 소공로 쪽 전부 적색
+            lines.append(f'        <phase duration="{green}" state="{j1_state(set(), "r")}"/>')
+            continue
+        edges = (edge,) if isinstance(edge, str) else edge   # 튜플이면 함께 녹색
+        on = set().union(*(idx[e] for e in edges))
+        lines.append(f'        <phase duration="{green}" state="{j1_state(on, "G")}"/>')
+        lines.append(f'        <phase duration="{step[2] if len(step) > 2 else yellow}" state="{j1_state(on, "y")}"/>')
     lines.append("    </tlLogic>")
 
     j3 = sig["J3"]
     n, _ = links_by_in_edge("J3")
-    on = set(range(n))
+    # free: 신호 없이 항상 녹색인 진출 엣지 (예: 서울역 방향 우회전 전용 길)
+    free = {link_no for _, out_lane, link_no in net.getTLS("J3").getConnections()
+            if out_lane.getEdge().getID() in j3.get("free", ())}
+
+    def j3_state(ch):
+        return "".join("G" if i in free else ch for i in range(n))
+
     lines.append(f'    <tlLogic id="J3" type="static" programID="myeongdong" offset="{j3["offset"]}">')
-    lines.append(f'        <phase duration="{j3["green"]}" state="{state(n, on, "G")}"/>')
-    lines.append(f'        <phase duration="{yellow}" state="{state(n, on, "y")}"/>')
-    lines.append(f'        <phase duration="{j3["red"]}" state="{"r" * n}"/>')
+    lines.append(f'        <phase duration="{j3["green"]}" state="{j3_state("G")}"/>')
+    lines.append(f'        <phase duration="{yellow}" state="{j3_state("y")}"/>')
+    lines.append(f'        <phase duration="{j3["red"]}" state="{j3_state("r")}"/>')
     lines.append("    </tlLogic>")
     lines.append("</additional>")
     with open(out_path, "w") as f:
@@ -368,9 +446,16 @@ def _write_scenery(out_dir: str, road: dict):
     import random
     path = os.path.join(out_dir, "highway.scenery.xml")
     cfg = SCENERY if isinstance(SCENERY, dict) else {}
+    # 미디어파사드 위치 표시 (장식, 나무 여부와 상관없이 그림)
+    landmarks = []
+    mf = cfg.get("media_facade")
+    if mf:
+        shape = " ".join(f"{x},{y}" for x, y in mf["shape"])
+        landmarks.append(f'    <poly id="media_facade" type="media_facade" color="{mf["color"]}" '
+                         f'fill="1" layer="5" shape="{shape}"/>')
     if not cfg.get("trees", False):
         with open(path, "w") as f:
-            f.write("<additional/>\n")
+            f.write("\n".join(["<additional>"] + landmarks + ["</additional>"]) + "\n")
         return
 
     rng = random.Random(int(cfg.get("seed", 7)))
@@ -389,7 +474,7 @@ def _write_scenery(out_dir: str, road: dict):
     ]
     bush_greens = ["70,124,58", "84,136,64", "62,112,52"]
 
-    lines = ["<additional>"]
+    lines = ["<additional>"] + landmarks
     tid = [0]
 
     def draw_tree(x, y, r):

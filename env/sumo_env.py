@@ -187,9 +187,8 @@ class SumoHighwayEnv(gym.Env):
         #   맨 왼쪽에 있어도 오프셋 -2로 맨 오른쪽 차선까지 보인다.
         self.obs_offsets = (+2, +1, 0, -1, -2)
         n_lanes_view = len(self.obs_offsets)
-        # 명동 추가 10개 [31..40]: 경로 기준 연결성 5 + 목표 차로 칸 수
-        #   + 정지선 거리 + 신호 상태·거리·남은 시간 (_route_obs)
-        self.obs_dim = 1 + n_lanes_view * 4 + n_lanes_view + n_lanes_view + 10
+        # 명동 추가 3개 [31..33]: 목표 차로 칸 수 + 신호 상태·거리 (_route_obs)
+        self.obs_dim = 1 + n_lanes_view * 4 + n_lanes_view + n_lanes_view + 3
         self.observation_space = spaces.Box(-1.0, 1.0, shape=(self.obs_dim,),
                                             dtype=np.float32)
 
@@ -551,13 +550,13 @@ class SumoHighwayEnv(gym.Env):
         for offset in self.obs_offsets:
             obs.append(self._lane_density(offset))
 
-        # ----- [31..40] 명동 추가: 경로·신호 -----
+        # ----- [31..33] 명동 추가: 경로·신호 -----
         obs += self._route_obs()
 
         return np.clip(np.array(obs, dtype=np.float32), -1.0, 1.0)
 
     # ------------------------------------------------------------------
-    # 명동 추가 관측 [31..40]과 경로 이탈 판정
+    # 명동 추가 관측 [31..33]과 경로 이탈 판정
     # ------------------------------------------------------------------
     def _next_route_edge(self):
         """ego 경로에서 현재 엣지 다음 엣지 id. 마지막 엣지면 None."""
@@ -575,40 +574,26 @@ class SumoHighwayEnv(gym.Env):
                    for l in traci.lane.getLinks(lane_id))
 
     def _route_obs(self):
-        """[31..40]: 경로 기준 연결성 5, 목표 차로 칸 수, 정지선 거리, 신호 3개.
+        """[31..33]: 목표 차로 칸 수, 신호 상태·거리.
+        모두 실제 운전자가 보거나 내비게이션으로 아는 정보만 쓴다.
         정규화와 기본값은 env/mdp_config.py 관측 주석 참고."""
         edge = traci.vehicle.getRoadID(self.ego_id)
-        if edge.startswith(":"):          # 교차로 내부: 기존 연결성과 같은 중립값
-            conn, target, stop = [1.0] * len(self.obs_offsets), 0.0, 0.0
-        else:
-            nxt = self._next_route_edge()
-            n = traci.edge.getLaneNumber(edge)
+        target = 0.0                      # 교차로 내부: 중립값
+        if not edge.startswith(":"):
             cur = traci.vehicle.getLaneIndex(self.ego_id)
-            remaining = (traci.lane.getLength(f"{edge}_{cur}")
-                         - traci.vehicle.getLanePosition(self.ego_id))
-            ok = [self._lane_leads_to(f"{edge}_{i}", nxt) for i in range(n)]
-            conn = []
-            for offset in self.obs_offsets:
-                i = cur + offset
-                if not 0 <= i < n:
-                    conn.append(-1.0)
-                else:
-                    conn.append(1.0 if ok[i] else remaining / self.visibility)
             # 목표 차로: 다음 엣지만 보면 S1에서는 모든 차로가 "정답"이라,
             # 경로 전체를 보는 SUMO bestLanes의 차로 이동 칸 수(+왼쪽)를 쓴다.
             best = {b[0]: b[3] for b in traci.vehicle.getBestLanes(self.ego_id)}
             target = best.get(f"{edge}_{cur}", 0) / 6.0
-            stop = remaining / 200.0
 
         tls = traci.vehicle.getNextTLS(self.ego_id)
         if tls:
-            tls_id, _, dist, state = tls[0]
+            _, _, dist, state = tls[0]
             sig = 1.0 if state in "Gg" else 0.0 if state in "yY" else -1.0
-            left = traci.trafficlight.getNextSwitch(tls_id) - traci.simulation.getTime()
-            sig_obs = [sig, dist / 200.0, left / 60.0]
+            sig_obs = [sig, dist / 200.0]
         else:
-            sig_obs = [1.0, 1.0, 1.0]     # 앞에 신호 없음 = 막힘 없음
-        return conn + [target, stop] + sig_obs
+            sig_obs = [1.0, 1.0]          # 앞에 신호 없음 = 막힘 없음
+        return [target] + sig_obs
 
     def _route_failed(self) -> bool:
         """경로 이탈: 내 경로의 다음 엣지로 이어지지 않는 차로의 끝에 도달.

@@ -9,3 +9,6 @@ env/sumo/
 # 학습 결과와 수집 데이터 (용량이 커서 Hugging Face 등에 따로 올림)
 results/
 data/
+
+# 네이버 지도·위성사진 캡처에 표시한 작업용 이미지 (저작권 문제로 저장소에 올리지 않음)
+docs/streetview/needed_checks.jpg

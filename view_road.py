@@ -8,6 +8,9 @@ sumo-gui 화면으로 빠르게 확인하는 용도.
     python view_road.py             # sumo-gui로 도로를 띄운다 (정적 — 자동 재생 안 함)
     python view_road.py --netedit   # netedit(SUMO 도로 편집기)로 도로망 열기
     python view_road.py --nogui     # 화면 없이 설정 검증만 (GUI 없는 서버용)
+    python view_road.py --christmas # 크리스마스 시나리오로 보기 (road_config 파일은 그대로)
+    python view_road.py --background # 영상용 배경 교통(남대문로 직진)까지 켜서 보기
+    python view_road.py --lanechange.duration 1   # 모르는 옵션은 SUMO에 그대로 넘긴다
 
 기본 모드(sumo-gui) 동작:
     창이 뜨면 도로만 정적으로 보인다. 차를 움직이려면 상단의 ▶(플레이) 버튼을
@@ -66,10 +69,23 @@ if __name__ == "__main__":
     parser.add_argument("--seconds", type=int, default=120,
                         help="--nogui 검증 시 시뮬레이션 길이(초). 기본 120초. "
                              "(GUI 모드는 시간 제한 없이 사용자가 직접 제어)")
-    args = parser.parse_args()
+    parser.add_argument("--christmas", action="store_true",
+                        help="TRAFFIC['christmas']['enabled']를 이번 실행에서만 켠다")
+    parser.add_argument("--background", action="store_true",
+                        help="영상용 배경 교통(남대문로 직진)을 이번 실행에서만 켠다")
+    # 나머지 옵션(예: --lanechange.duration 1)은 SUMO 실행 명령에 그대로 붙인다
+    args, sumo_extra = parser.parse_known_args()
+
+    traffic = TRAFFIC
+    if args.christmas:
+        traffic = {**traffic, "christmas": {**traffic["christmas"], "enabled": True}}
+        print(f"크리스마스 시나리오 (교통량 {traffic['christmas']['traffic_scale']}배)")
+    if args.background:
+        traffic = {**traffic, "background": {**traffic["background"], "enabled": True}}
+        print("영상용 배경 교통 켬 (남대문로 숭례문↔을지로 직진)")
 
     # 1) road_config 기준으로 SUMO 파일 (재)생성 — 수정사항이 즉시 반영된다
-    sumocfg = road_builder.build(ROAD, EGO, TRAFFIC, os.path.join(BASE, "env", "sumo"))
+    sumocfg = road_builder.build(ROAD, EGO, traffic, os.path.join(BASE, "env", "sumo"))
     net_file = os.path.join(BASE, "env", "sumo", "highway.net.xml")
     print(f"도로 생성 완료: {sumocfg}")
     print_summary()
@@ -87,7 +103,7 @@ if __name__ == "__main__":
              "--step-length", str(SIMULATION["step_length"]),
              "--end", str(args.seconds),
              "--no-warnings", "true", "--no-step-log", "true",
-             "--duration-log.statistics", "true"],   # 종료 시 차량 통계 출력
+             "--duration-log.statistics", "true"] + sumo_extra,   # 종료 시 차량 통계 출력
             capture_output=True, text=True)
         # SUMO의 통계 요약(투입/도착 차량 수 등)을 그대로 보여준다
         print(result.stderr.strip() or result.stdout.strip())
@@ -110,4 +126,4 @@ if __name__ == "__main__":
         subprocess.run(
             [checkBinary("sumo-gui"), "-c", sumocfg,
              "--step-length", str(SIMULATION["step_length"]),
-             "--delay", str(SIMULATION["gui_delay"])])
+             "--delay", str(SIMULATION["gui_delay"])] + sumo_extra)
