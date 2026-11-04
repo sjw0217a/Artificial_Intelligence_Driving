@@ -54,7 +54,7 @@ from datetime import datetime
 import numpy as np
 
 from env.road_config import ROAD, EGO, TRAFFIC
-SCENARIO = "christmas" if TRAFFIC["christmas"]["enabled"] else "normal"
+from env.cli import add_scenario_args, apply_scenario_args
 from env.mdp_config import SIMULATION, OBSERVATION, ACTION
 from env import road_builder
 from env.sumo_env import SumoHighwayEnv
@@ -177,12 +177,15 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
         except ImportError:
             pass
 
+    # 워커(spawn)는 모듈을 새로 import하므로 옵션을 여기서 다시 반영한다
+    traffic, _ = apply_scenario_args(args, TRAFFIC, SIMULATION)
+    scenario = "christmas" if traffic["christmas"]["enabled"] else "normal"
     env = SumoHighwayEnv(
         cfg_path=sumocfg,
         road=ROAD, ego=EGO,
         mdp_sim=SIMULATION, mdp_obs=OBSERVATION,
         action=ACTION, reward=REWARD,
-        traffic=TRAFFIC,
+        traffic=traffic,
         gui=args.gui,
         gui_autostart=True,
     )
@@ -223,7 +226,7 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
 
                     record = {
                         "episode": int(ep),
-                        "scenario": SCENARIO,
+                        "scenario": scenario,
                         "t": t,
                         "observation": compact(obs, args.ndigits),
                         # 스칼라 몇 개는 용량에 영향이 없으니 반올림하지 않는다.
@@ -352,6 +355,7 @@ def main():
     parser.add_argument("--ndigits", type=int, default=4,
                         help="JSONL의 observation/state/detected float 소수 자릿수 "
                              "(NPZ에는 영향 없음)")
+    add_scenario_args(parser)
     args = parser.parse_args()
     if args.policy in ("ppo", "bc") and args.model is None:
         parser.error(f"--policy {args.policy}에는 --model이 필요합니다.")
@@ -370,7 +374,8 @@ def main():
     npz_path = os.path.join(args.out_dir, name + ".npz")
 
     # 도로 파일은 부모에서 한 번만 생성한다 (워커들이 동시에 쓰면 파일이 깨진다).
-    sumocfg = road_builder.build(ROAD, EGO, TRAFFIC,
+    traffic, _ = apply_scenario_args(args, TRAFFIC, SIMULATION)
+    sumocfg = road_builder.build(ROAD, EGO, traffic,
                                  os.path.join(BASE, "env", "sumo"))
 
     t0 = time.time()

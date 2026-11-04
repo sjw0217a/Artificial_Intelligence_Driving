@@ -13,6 +13,8 @@
 
 실행:  python train.py
 """
+import argparse
+import json
 import os
 import shutil
 from datetime import datetime
@@ -21,6 +23,7 @@ from env.road_config import ROAD, EGO, TRAFFIC
 from env.mdp_config import SIMULATION, OBSERVATION, ACTION
 from env.mdp_config import REWARD as REWARD_DEFAULTS
 from env import road_builder
+from env.cli import add_scenario_args, apply_scenario_args
 from env.sumo_env import SumoHighwayEnv
 
 from algorithms.ppo import PPO
@@ -144,17 +147,25 @@ def snapshot_configs(run_dir: str):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="PPO 학습")
+    add_scenario_args(parser)
+    args = parser.parse_args()
+    traffic, _ = apply_scenario_args(args, TRAFFIC, SIMULATION)
+
     # 1) 도로 생성 (env/road_config.py 기준으로 매번 재생성)
-    sumocfg = road_builder.build(ROAD, EGO, TRAFFIC,
+    sumocfg = road_builder.build(ROAD, EGO, traffic,
                                  os.path.join(BASE, "env", "sumo"))
     print(f"도로 생성 완료: {sumocfg}")
     print(f"  ①~③ {ROAD['length']}m, 최대 {ROAD['num_lanes']}차선, "
-          f"교통량 {sum(TRAFFIC['entries'].values())}대/시간")
+          f"교통량 {sum(traffic['entries'].values()):.0f}대/시간")
 
     # 2) 결과 폴더 + 로거
     run_dir = make_run_dir()
     logger = RunLogger(run_dir)
     print(f"결과 폴더: {run_dir}")
+    # 설정 스냅샷(*_config.py)에는 실행 옵션이 안 남으니 따로 저장한다
+    with open(os.path.join(run_dir, "cli_args.json"), "w") as f:
+        json.dump(vars(args), f, ensure_ascii=False)
 
     # 3) 환경
     env = SumoHighwayEnv(
@@ -162,7 +173,7 @@ if __name__ == "__main__":
         road=ROAD, ego=EGO,
         mdp_sim=SIMULATION, mdp_obs=OBSERVATION,
         action=ACTION, reward=REWARD,
-        traffic=TRAFFIC,
+        traffic=traffic,
         gui=False,   # 학습은 화면 없이 (수십 배 빠름)
     )
 

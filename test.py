@@ -14,6 +14,7 @@ import os
 import torch
 
 from env.road_config import ROAD, EGO, TRAFFIC
+from env.cli import add_scenario_args, apply_scenario_args
 from env.mdp_config import SIMULATION, OBSERVATION, ACTION
 from env import road_builder
 from env.sumo_env import SumoHighwayEnv
@@ -81,7 +82,9 @@ if __name__ == "__main__":
                         help="화면 없이 주행 지표만 측정 (빠름)")
     parser.add_argument("--algorithm", choices=["auto", "ppo", "bc"], default="auto",
                         help="기본은 모델 파일에서 PPO/BC 자동 판별")
+    add_scenario_args(parser, gui=True)
     args = parser.parse_args()
+    traffic, sim = apply_scenario_args(args, TRAFFIC, SIMULATION)
     if args.episodes < 1:
         parser.error("--episodes는 1 이상이어야 합니다.")
 
@@ -94,14 +97,14 @@ if __name__ == "__main__":
 
     # 주의: 현재 env/ 설정과 다른 설정으로 학습된 모델이면 성능이 이상할 수 있다.
     # 그 run의 설정 스냅샷은 model.pt와 같은 폴더의 *_config.py 에서 확인 가능.
-    sumocfg = road_builder.build(ROAD, EGO, TRAFFIC,
+    sumocfg = road_builder.build(ROAD, EGO, traffic,
                                  os.path.join(BASE, "env", "sumo"))
     env = SumoHighwayEnv(
         cfg_path=sumocfg,
         road=ROAD, ego=EGO,
-        mdp_sim=SIMULATION, mdp_obs=OBSERVATION,
+        mdp_sim=sim, mdp_obs=OBSERVATION,
         action=ACTION, reward=REWARD,
-        traffic=TRAFFIC,
+        traffic=traffic,
         gui=not args.nogui,
         gui_autostart=False,   # ▶(플레이) 버튼을 눌러야 에피소드 시작
     )

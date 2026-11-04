@@ -39,7 +39,24 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
     if bg_on:
         road = {**road, "nodes": {**road["nodes"], **bg["nodes"]},
                 "edges": {**road["edges"], **bg["edges"]},
-                "connections": list(road["connections"]) + list(bg["connections"])}
+                "connections": [c for c in road["connections"] if c[0] not in bg["edges"]]
+                               + list(bg["connections"])}
+
+    # 크리스마스 시나리오: 교통량을 배율만큼 늘리고, 각 OD flow의 일부를
+    #   "구경꾼" flow(f_..._look)로 떼어 구경 구간을 look_speed로 지나가게 한다.
+    xmas = traffic.get("christmas") or {}
+    xmas_on = bool(xmas.get("enabled", False))
+    scale = float(xmas.get("traffic_scale", 1.0)) if xmas_on else 1.0
+    look_share = float(xmas.get("look_share", 0.0)) if xmas_on else 0.0
+    # 구경 구간: (엣지, 시작 m, 끝 m) 목록. 지금 도로망에 있는 엣지만 쓴다.
+    #   끝이 None(엣지 전체)이면 그 엣지에 "구경꾼 차량 분류(custom1)만 look_speed" 속도 제한을 건다
+    #   → 아무 차로에서나 느려지고 자기 진출 차로로 평소처럼 옮겨 간다.
+    #   일부 구간이면 통과 속도 stop(끝 음수 = 차로 끝에서 거꾸로). stop은 한 차로에 묶여서(차로를 안 적으면
+    #   맨 오른쪽) 여러 차로 구간에 쓰면 구경꾼이 그 차로로 억지로 옮기다 5차로 끝에 갇혔음
+    #   (11/4, 크리스마스 1시간 Teleport 시드 30개 중 12개). 가변 속도 표지(VSS)의 vTypes는 SUMO 1.27에서
+    #   일반 차량에도 걸려서 쓰지 않는다.
+    look_zones = [z for z in xmas.get("look_zones", ()) if z[0] in road["edges"]] if look_share > 0 else []
+    look_edges = {e for e, a, b in look_zones if b is None}
 
     # ──────────────────────────────────────────────────────
     # 1) 노드 파일: 교차로·확폭점·진입/진출 끝점 (road["nodes"])
@@ -60,9 +77,18 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
         for eid, (frm, to, lanes, *rest) in road["edges"].items():
             # 4번째 값이 있으면 그 좌표들을 지나는 매끄러운 곡선 도로 (시작·끝은 노드 좌표)
             shape = f' shape="{" ".join(f"{x:.2f},{y:.2f}" for x, y in _smooth(rest[0]))}"' if rest else ""
+            etype = ' type="look_zone"' if eid in look_edges else ""
             f.write(f'    <edge id="{eid}" from="{frm}" to="{to}" '
-                    f'numLanes="{lanes}" speed="{road["speed_limit"]}"{shape}/>\n')
+                    f'numLanes="{lanes}" speed="{road["speed_limit"]}"{etype}{shape}/>\n')
         f.write("</edges>\n")
+    # 구경 구간 엣지 타입: 구경꾼(custom1)만 look_speed, 나머지 차량은 엣지의 제한속도 그대로
+    with open(os.path.join(out_dir, "highway.typ.xml"), "w") as f:
+        f.write("<types>\n")
+        if look_edges:
+            f.write(f'    <type id="look_zone">\n'
+                    f'        <restriction vClass="custom1" speed="{xmas.get("look_speed")}"/>\n'
+                    f'    </type>\n')
+        f.write("</types>\n")
 
     # ──────────────────────────────────────────────────────
     # 2.5) 연결 파일: 차로 단위 연결 (road["connections"])
@@ -114,6 +140,7 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
                 f'maxSpeed="{c.get("max_speed", traffic["max_speed"])}"',
                 # speedDev: 같은 타입 안에서도 개체별 희망속도 편차 (0~)
                 f'speedDev="{c.get("speed_dev", 0.1)}"',
+                f'impatience="{traffic.get("impatience", 0.0)}"',
                 f'color="{c.get("color", "1,1,0")}"',
                 'vClass="passenger"', 'guiShape="passenger/sedan"',
             ]
@@ -144,13 +171,18 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
                         + "\n".join(vtype_lines)
                         + "\n    </vTypeDistribution>")
         flow_type = "carDist"
+        # 크리스마스 구경꾼: 성향은 같고 차량 분류만 custom1인 차종(look_*). 구경 구간 속도 제한이 이 분류에만 걸린다
+        vtypes_block += "\n" + (vtypes_block.replace('id="carDist"', 'id="lookDist"')
+                                 .replace('id="car_', 'id="look_')
+                                 .replace('vClass="passenger"', 'vClass="custom1"'))
+        look_type = "lookDist"
     else:
         # controllers 설정이 없으면 예전 방식(단일 Krauss)으로 동작 (하위호환)
         vtypes_block = (f'    <vType id="car" accel="2.5" decel="4.5" '
                         f'maxSpeed="{traffic["max_speed"]}" '
                         f'sigma="{traffic.get("sigma", 0.5)}" '
                         f'vClass="passenger" guiShape="passenger/sedan"/>')
-        flow_type = "car"
+        flow_type = look_type = "car"
 
     # 경로: 진입 엣지 → S1 → S2 → 진출 엣지.  r0 = ego 기본 경로.
     #   OD flow의 period="exp(λ)"는 평균 λ대/초의 무작위(포아송) 도착이라
@@ -175,16 +207,11 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
             path.append(prev[path[-1]])
         return " ".join(reversed(path))
 
-    # 크리스마스 시나리오: 교통량을 배율만큼 늘리고, 각 OD flow의 일부를
-    #   "구경꾼" flow(f_..._look)로 떼어 구경 구간을 look_speed로 지나가게 한다.
-    xmas = traffic.get("christmas") or {}
-    xmas_on = bool(xmas.get("enabled", False))
-    scale = float(xmas.get("traffic_scale", 1.0)) if xmas_on else 1.0
-    look_share = float(xmas.get("look_share", 0.0)) if xmas_on else 0.0
-    # 구경 구간: (엣지, 시작 m, 끝 m) 목록. 파사드 앞이 엣지 두 개에 걸쳐서 stop을 이어 붙인다
-    look_stops = "".join(
-        f'        <stop edge="{e}" startPos="{a}" endPos="{b}" speed="{xmas.get("look_speed")}"/>\n'
-        for e, a, b in xmas.get("look_zones", ()))
+    def look_stops(route):
+        edges = route.split()
+        return "".join(
+            f'        <stop edge="{e}" startPos="{a}" endPos="{b}" speed="{xmas.get("look_speed")}"/>\n'
+            for e, a, b in look_zones if b is not None and e in edges)
 
     flow_lines = []
     for ent, vph in traffic["entries"].items():
@@ -194,11 +221,11 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
                 continue
             for suffix, part, extra in (
                     ("", 1.0 - look_share, ""),
-                    ("_look", look_share, look_stops)):
+                    ("_look", look_share, look_stops(route_edges((ent, ext))))):
                 if part <= 0:
                     continue
                 flow_lines.append(
-                    f'    <flow id="f_{ent}_{ext}{suffix}" type="{flow_type}" begin="0" end="100000" '
+                    f'    <flow id="f_{ent}_{ext}{suffix}" type="{look_type if suffix else flow_type}" begin="0" end="100000" '
                     f'period="exp({rate * part:.5f})" departLane="{traffic["depart_lane"]}" '
                     f'departSpeed="{traffic["depart_speed"]}">\n'
                     f'        <route edges="{route_edges((ent, ext))}"/>\n'
@@ -213,19 +240,23 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
                 f'    </flow>')
     bus = traffic.get("bus")
     if bus:
+        # 버스는 맨 오른쪽 차로(0)로 출발해 차로를 바꾸지 않는다. 세 노선 모두 0차로만으로
+        #   정류장(S1b_0)과 진출로까지 이어진다. 바꾸게 두면 정류장 앞 정지 차량을 왼쪽으로
+        #   추월했다가 못 돌아와 M에서 교착이 생겼다 (크리스마스 시드 23423, 310초)
+        #   lcCooperative는 0이어도 '양보용 급한 변경'이 남아서 -1로 완전히 끈다 (MP 안에서 왼쪽으로 밀려 갇혔음)
         stop = road["bus_stop"]
         for line, (ent, ext, headway) in bus["lines"].items():
             flow_lines.append(
                 f'    <flow id="bus_{line}" type="bus_type" begin="0" end="100000" '
-                f'period="exp({1.0 / headway:.5f})" departLane="best" departSpeed="max">\n'
+                f'period="exp({1.0 / headway:.5f})" departLane="0" departSpeed="max">\n'
                 f'        <route edges="{route_edges((ent, ext))}"/>\n'
                 f'        <stop busStop="{stop["id"]}" duration="{bus["stop_duration"]}"/>\n'
                 f'    </flow>')
 
     with open(os.path.join(out_dir, "highway.rou.xml"), "w") as f:
         f.write(f"""<routes>
-    <vType id="ego_type" accel="{ego['accel']}" decel="{ego['decel']}" maxSpeed="{ego['max_speed']}" color="1,0,0" vClass="passenger" guiShape="passenger/sedan"/>
-    <vType id="bus_type" vClass="bus" guiShape="bus" length="12" accel="1.2" decel="4.0" maxSpeed="{traffic['max_speed']}" color="0.1,0.6,0.2"/>
+    <vType id="ego_type" accel="{ego['accel']}" decel="{ego['decel']}" maxSpeed="{ego['max_speed']}" color="1,0,0" vClass="passenger" guiShape="passenger/sedan" impatience="{traffic.get('impatience', 0.0)}"/>
+    <vType id="bus_type" lcStrategic="-1" lcCooperative="-1" lcSpeedGain="0" lcKeepRight="0" vClass="bus" guiShape="bus" length="12" accel="1.2" decel="4.0" maxSpeed="{traffic['max_speed']}" color="0.1,0.6,0.2" impatience="{traffic.get('impatience', 0.0)}"/>
 {vtypes_block}
     <route id="r0" edges="{route_edges(ego['route'])}"/>
 {chr(10).join(flow_lines)}
@@ -301,6 +332,7 @@ def build(road: dict, ego: dict, traffic: dict, out_dir: str) -> str:
          "--node-files", os.path.join(out_dir, "highway.nod.xml"),
          "--edge-files", os.path.join(out_dir, "highway.edg.xml"),
          "--connection-files", os.path.join(out_dir, "highway.con.xml"),
+         "--type-files", os.path.join(out_dir, "highway.typ.xml"),
          "--no-turnarounds", "true",
          "--offset.disable-normalization", "true",
          "-o", net_path],

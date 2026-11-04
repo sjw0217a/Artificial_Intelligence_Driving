@@ -10,6 +10,7 @@ sumo-gui 화면으로 빠르게 확인하는 용도.
     python view_road.py --nogui     # 화면 없이 설정 검증만 (GUI 없는 서버용)
     python view_road.py --christmas # 크리스마스 시나리오로 보기 (road_config 파일은 그대로)
     python view_road.py --background # 영상용 배경 교통(남대문로 직진)까지 켜서 보기
+    python view_road.py --traffic 1.5 --speed 4  # 교통량 1.5배, 4배속 재생
     python view_road.py --lanechange.duration 1   # 모르는 옵션은 SUMO에 그대로 넘긴다
 
 기본 모드(sumo-gui) 동작:
@@ -37,6 +38,7 @@ import subprocess
 from env.road_config import ROAD, EGO, TRAFFIC
 from env.mdp_config import SIMULATION
 from env import road_builder
+from env.cli import add_scenario_args, apply_scenario_args
 # sumo_env를 import하면 SUMO_HOME 자동 감지 로직이 함께 실행된다
 from env.sumo_env import SumoHighwayEnv  # noqa: F401  (자동 감지 목적의 import)
 from sumolib import checkBinary
@@ -44,7 +46,7 @@ from sumolib import checkBinary
 BASE = os.path.dirname(os.path.abspath(__file__))
 
 
-def print_summary():
+def print_summary(traffic):
     """현재 road_config 내용을 표로 요약 출력."""
     print("─" * 46)
     print(" 현재 도로 설정 (env/road_config.py)")
@@ -53,8 +55,8 @@ def print_summary():
     print(f"  최대 차선 수   : {ROAD['num_lanes']}")
     print(f"  제한속도       : {ROAD['speed_limit']} m/s "
           f"(≈ {float(ROAD['speed_limit']) * 3.6:.0f} km/h)")
-    print(f"  배경 교통량    : {sum(TRAFFIC['entries'].values())} 대/시간 "
-          f"(진입로별 {TRAFFIC['entries']})")
+    print(f"  배경 교통량    : {sum(traffic['entries'].values()):.0f} 대/시간 "
+          f"(진입로별 {traffic['entries']})")
     print(f"  배경차 최고속도: {TRAFFIC['max_speed']} m/s")
     print(f"  ego 가속/감속  : +{EGO['accel']} / -{EGO['decel']} m/s²")
     print("─" * 46)
@@ -69,26 +71,17 @@ if __name__ == "__main__":
     parser.add_argument("--seconds", type=int, default=120,
                         help="--nogui 검증 시 시뮬레이션 길이(초). 기본 120초. "
                              "(GUI 모드는 시간 제한 없이 사용자가 직접 제어)")
-    parser.add_argument("--christmas", action="store_true",
-                        help="TRAFFIC['christmas']['enabled']를 이번 실행에서만 켠다")
-    parser.add_argument("--background", action="store_true",
-                        help="영상용 배경 교통(남대문로 직진)을 이번 실행에서만 켠다")
+    add_scenario_args(parser, gui=True)
     # 나머지 옵션(예: --lanechange.duration 1)은 SUMO 실행 명령에 그대로 붙인다
     args, sumo_extra = parser.parse_known_args()
 
-    traffic = TRAFFIC
-    if args.christmas:
-        traffic = {**traffic, "christmas": {**traffic["christmas"], "enabled": True}}
-        print(f"크리스마스 시나리오 (교통량 {traffic['christmas']['traffic_scale']}배)")
-    if args.background:
-        traffic = {**traffic, "background": {**traffic["background"], "enabled": True}}
-        print("영상용 배경 교통 켬 (남대문로 숭례문↔을지로 직진)")
+    traffic, sim = apply_scenario_args(args, TRAFFIC, SIMULATION)
 
     # 1) road_config 기준으로 SUMO 파일 (재)생성 — 수정사항이 즉시 반영된다
     sumocfg = road_builder.build(ROAD, EGO, traffic, os.path.join(BASE, "env", "sumo"))
     net_file = os.path.join(BASE, "env", "sumo", "highway.net.xml")
     print(f"도로 생성 완료: {sumocfg}")
-    print_summary()
+    print_summary(traffic)
 
     # 2) 요청한 모드로 열기
     if args.netedit:
@@ -126,4 +119,4 @@ if __name__ == "__main__":
         subprocess.run(
             [checkBinary("sumo-gui"), "-c", sumocfg,
              "--step-length", str(SIMULATION["step_length"]),
-             "--delay", str(SIMULATION["gui_delay"])] + sumo_extra)
+             "--delay", str(sim["gui_delay"])] + sumo_extra)
