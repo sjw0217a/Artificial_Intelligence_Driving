@@ -154,12 +154,9 @@ EGO = {
     "max_speed": 13.89,    # 차량 자체의 최고속도
     "depart_lane": "best",  # 시작 차선. "best"면 SUMO가 경로에 맞는 차로를 고른다
     "depart_speed": 8,     # 시작 속도 (m/s)
-    # 기본 경로 r0 (view_road 등 rou.xml용). 학습 env는 매 Episode OD를 무작위로 고른다:
-    # 숭례문에서 들어와(맨 오른쪽) 명동으로 좌회전(맨 왼쪽) — 엇갈림이 가장 큰 조합
-    "route": ("W_in", "E_out"),
-    # OD 뽑기 비중 (TRAFFIC entries × exit_split 9개, 없는 조합은 1).
-    # 엇갈림이 큰 조합(오른쪽 진입 → 왼쪽 진출, 그 반대)을 더 자주 뽑는다.
-    "od_weights": {("W_in", "E_out"): 2.0, ("NE_in", "W_out"): 2.0},
+    # ego 경로 r0 (고정, 11/9 팀 회의): 을지로에서 들어와(왼쪽) 서울역으로 우회전(맨 오른쪽).
+    # S1~S2 약 190 m 안에 오른쪽으로 2~3칸 옮겨야 하는 엇갈림 경로
+    "route": ("NE_in", "W_out"),
     # SUMO speedMode 비트: 8 = 교차로 우선권, 16 = 적신호 정지 → 24.
     # 앞차 안전거리(1)·가감속 한계(2,4)는 꺼서 추돌 회피는 RL이 배우게 둔다.
     "speed_mode": 24,

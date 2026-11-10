@@ -3,7 +3,7 @@
 저장 단위는 POMDP transition 하나다:
     (o_t, a_t, r_t, o_{t+1}, terminated, truncated, s_t, s_{t+1})
 
-- o_t / o_{t+1}: agent가 실제로 보는 부분관측 (19차원)
+- o_t / o_{t+1}: agent가 실제로 보는 부분관측 (33차원)
 - a_t: [가감속 raw, 차선변경 raw]
 - lane_change: 실제 환경에 적용된 {-1, 0, +1}
 - s_t / s_{t+1}: SUMO 내부의 privileged simulator state.
@@ -18,8 +18,8 @@
 - NPZ의 감지 차량 좌표는 object 배열(pickle) 대신 flat (M, 2) + offsets로 저장한다.
 
 속도:
-- headless면 sumo_env가 libsumo(in-process SUMO)를 써서 TraCI 소켓 왕복이 사라진다
-  (pip install libsumo). --workers N으로 SUMO 인스턴스 N개를 병렬로 돌려 더 줄인다.
+- --workers N으로 SUMO 인스턴스 N개를 병렬로 돌린다.
+  (sumo_env는 TraCI 소켓으로 SUMO와 통신한다. libsumo는 쓰지 않는다)
 
 예시:
     python collect_pomdp_data.py --episodes 100
@@ -389,7 +389,7 @@ def main():
                  for w in range(workers)]
         jobs = [(args, sumocfg, chunks[w], w, parts[w][0], parts[w][1], f"[w{w}] ")
                 for w in range(workers)]
-        # spawn: 워커마다 깨끗한 프로세스에서 SUMO(libsumo)를 하나씩 띄운다.
+        # spawn: 워커마다 깨끗한 프로세스에서 SUMO를 하나씩 띄운다.
         with multiprocessing.get_context("spawn").Pool(workers) as pool:
             total = sum(pool.starmap(collect, jobs))
         merge_parts(parts, jsonl_path, npz_path)

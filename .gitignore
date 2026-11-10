@@ -13,6 +13,9 @@ data/
 # 네이버 지도·위성사진 캡처에 표시한 작업용 이미지 (저작권 문제로 저장소에 올리지 않음)
 docs/streetview/needed_checks.jpg
 
+# 발표 자료 (지도·위성사진 캡처가 들어 있고 용량이 커서 저장소에 올리지 않음)
+docs/presentation/
+
 # 에이전트 규칙·인수인계 문서 (저장소에 올리지 않음)
 AGENTS.md
 CLAUDE.md
