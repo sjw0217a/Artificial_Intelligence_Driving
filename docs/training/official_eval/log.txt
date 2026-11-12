@@ -1,0 +1,14 @@
+[18:12] 시작 model=handoff/model_bc_v3_3.pt (지금 models/bc_v3_3.pt, 같은 파일)
+normal s1 seed=2026111201
+normal s2 seed=2026111202
+normal s3 seed=2026111203
+xmas s1 seed=2026111204
+xmas s2 seed=2026111205
+xmas s3 seed=2026111206
+xmas13 s1 seed=2026111207
+xmas13 s2 seed=2026111208
+xmas13 s3 seed=2026111209
+xmasbus3 s1 seed=2026111210
+xmasbus3 s2 seed=2026111211
+xmasbus3 s3 seed=2026111212
+[18:22] 끝

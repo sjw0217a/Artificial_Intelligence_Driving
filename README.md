@@ -29,4 +29,21 @@ python view_road.py --nogui --seconds 600     # 화면 없이 10분 돌려 설�
 | `--seed X`               | 실험 seed고정 (예: `--seed 23423`)                                                    |
 | 그 밖의 옵션             | SUMO에 그대로 넘김( `--window-size x,y`등)                                            |
 
+## AV 모델 학습
+
+최종 모델은 `models/bc_v3_3.pt`다 (관측 37차원). 규칙 기반 운전자의 시연으로 BC를 학습하고 DAgger 3라운드를 거쳤다.
+
+- 학습 과정 전체 (무엇을 왜 했고 무엇이 실패했는지): [docs/training/학습_과정_기록.md](docs/training/학습_과정_기록.md)
+- 모델 인계, 성능, 데이터 수집 명령: [docs/training/모델_인계.md](docs/training/모델_인계.md)
+
+```bash
+python test.py models/bc_v3_3.pt --christmas                                 # sumo-gui로 주행 보기
+python eval_section_time.py models/bc_v3_3.pt --episodes 100 --christmas      # 충돌률, 복잡 구간 통과시간
+python collect_pomdp_data.py --model models/bc_v3_3.pt --episodes 1000 --workers 8 --seed 100 --name final_normal
+bash scripts/training/train_final_model.sh                                    # 최종 모델을 처음부터 다시 학습
+```
+
+공식 수치 (새 시드, 조건마다 300 Episode): 충돌은 평시 0, 크리스마스 0, 크리스마스 + 교통량 1.3배 0, 크리스마스 + 버스 3배 1회.
+복잡 구간(S1~S2) 통과시간은 평시 15.2초, 크리스마스 21.3초다.
+
 
