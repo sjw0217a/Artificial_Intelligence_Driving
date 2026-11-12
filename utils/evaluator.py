@@ -31,6 +31,7 @@ class DrivingMetrics:
                             # (추월 시나리오에서 정책이 실제로 차선을
                             #  활용하는지 보는 핵심 지표)
     teleports: float        # 에피소드당 평균 Teleport 수 (전체 차량, 시뮬레이션 안정성)
+    arrival_time: float     # 도착한 에피소드의 평균 소요 시간 (초, 도착이 없으면 nan)
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -45,6 +46,7 @@ class DrivingMetrics:
                 f"최소차간={self.min_gap:.1f}m  "
                 f"차선변경={self.lane_changes:.1f}회  "
                 f"Teleport={self.teleports:.1f}  "
+                f"도착시간={self.arrival_time:.0f}s  "
                 f"보상={self.ep_return:.1f}")
 
 
@@ -65,6 +67,7 @@ def evaluate_policy(policy, env, n_episodes: int = 5,
     """
     n_collide, n_arrive, n_route_fail, n_timeout = 0, 0, 0, 0
     speeds, gaps, returns, lengths, lane_changes, teleports = [], [], [], [], [], []
+    arrival_times = []
 
     for _ in range(n_episodes):
         obs, _ = env.reset()
@@ -103,6 +106,7 @@ def evaluate_policy(policy, env, n_episodes: int = 5,
             n_collide += 1
         elif ended_by == "arrival":
             n_arrive += 1
+            arrival_times.append(ep_len * env.step_length)
         elif ended_by == "route_fail":
             n_route_fail += 1
         else:
@@ -125,4 +129,5 @@ def evaluate_policy(policy, env, n_episodes: int = 5,
         ep_length=float(np.mean(lengths)),
         lane_changes=float(np.mean(lane_changes)),
         teleports=float(np.mean(teleports)),
+        arrival_time=float(np.mean(arrival_times)) if arrival_times else float("nan"),
     )

@@ -134,6 +134,10 @@ class PPO:
         self.value_coef = value_coef
         self.entropy_coef = entropy_coef
         self.lane_entropy_coef = lane_entropy_coef
+        self.bc_coef, self.bc_data, self.bc_class_w = 0.0, None, None   # set_bc_regularizer로 켠다
+        # 처음 이 횟수의 업데이트는 critic(가치)만 학습한다. BC로 시작한 정책에 새 보상을 줄 때,
+        # 가치가 새 보상에 맞기 전의 엉터리 advantage로 actor가 망가지는 것을 막는다.
+        self.critic_warmup, self._updates_done = 0, 0
         self.max_grad_norm = max_grad_norm
         self.normalize_advantage = normalize_advantage
 
@@ -226,8 +230,10 @@ class PPO:
             if truncated and not terminated:
                 stored_reward += self.gamma * self.get_value(next_obs)
 
+            # 시간초과도 에피소드 경계로 표시한다. 위에서 γV(s')를 이미 보상에 더했으므로,
+            # 끊지 않으면 다음 에피소드 첫 상태의 가치가 한 번 더 섞인다.
             self.buffer.add(obs, action, log_prob, stored_reward, value,
-                            terminated)
+                            terminated or truncated)
 
             if terminated or truncated:
                 finished_returns.append(ep_stats[0])
@@ -284,14 +290,28 @@ class PPO:
                 # ---- 엔트로피 보너스: 탐험 유지 ----
                 entropy_loss = -entropy.mean()
 
+                warmup = self._updates_done < self.critic_warmup
                 loss = (policy_loss
                         + self.value_coef * value_loss
                         + self.entropy_coef * entropy_loss)
+                if warmup:
+                    loss = self.value_coef * value_loss
                 # 차선 head 전용 엔트로피 보너스 (hybrid에서만 동작)
-                if self.lane_entropy_coef > 0 and \
+                if self.lane_entropy_coef > 0 and not warmup and \
                         hasattr(self.policy, "lane_entropy"):
                     loss = loss - (self.lane_entropy_coef
                                    * self.policy.lane_entropy(obs_t[mb]).mean())
+
+                # 시연 따라 하기 항 (set_bc_regularizer로 켰을 때만): PPO가 보상을 쫓다가
+                #   BC로 익힌 안전한 운전에서 너무 멀어지지 않게 시연 행동과의 차이를 벌점으로 둔다.
+                if self.bc_coef > 0 and self.bc_data is not None and not warmup:
+                    d_obs, d_acc, d_lane = self.bc_data
+                    j = torch.randint(0, len(d_obs), (len(mb),), device=self.device)
+                    mu_d, _, logits_d, _ = self.policy(d_obs[j])
+                    bc_loss = (((mu_d.squeeze(-1) - d_acc[j]) ** 2).mean()
+                               + nn.functional.cross_entropy(logits_d, d_lane[j], weight=self.bc_class_w))
+                    loss = loss + self.bc_coef * bc_loss
+                    stats["bc_loss"] = stats.get("bc_loss", 0.0) + bc_loss.item()
 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -314,6 +334,7 @@ class PPO:
                 stats["clip_frac"] += clip_frac.item()
                 n_batches += 1
 
+        self._updates_done += 1
         out = {k: v / max(n_batches, 1) for k, v in stats.items()}
         # hybrid 진단: 업데이트 "후" 정책의 평균 차선변경(좌+우) 확률.
         #   0으로 붕괴 → 차선유지 지역최적 경고 / 적당히 유지되며
@@ -329,7 +350,7 @@ class PPO:
     # ==================================================================
     def learn(self, env, total_timesteps: int, logger=None,
               log_interval: int = 1, eval_interval: int = 0,
-              eval_episodes: int = 5):
+              eval_episodes: int = 5, best_model_path: str = None):
         """학습 실행.
 
         Args:
@@ -338,6 +359,7 @@ class PPO:
         """
         obs, _ = env.reset()
         ep_stats = [0.0, 0]                    # [현재 에피소드 보상, 길이]
+        best_score = -np.inf                   # best_model_path 저장 기준
         recent_returns = deque(maxlen=20)
         n_updates = 0
 
@@ -373,10 +395,26 @@ class PPO:
                 if logger is not None:
                     logger.log_eval(self.num_timesteps, m.as_dict(),
                                     m.summary(), eval_episodes)
+                # 학습 중 성적이 가장 좋았던 정책을 따로 저장한다. 마지막 시점이 출렁임의
+                # 나쁜 쪽에 걸려도 좋은 모델을 잃지 않게. 기준: 완주율 - 2×충돌률, 같으면 더 빨리 도착
+                if best_model_path:
+                    t = m.arrival_time if np.isfinite(m.arrival_time) else 1e3
+                    score = m.success_rate - 2.0 * m.collision_rate - 1e-4 * t
+                    if score > best_score:
+                        best_score = score
+                        self.save(best_model_path)
+                        print(f"    [best] {best_model_path} 갱신 (점수 {score:.3f})")
                 # 평가가 학습 중이던 에피소드를 끊었으므로 리셋.
                 # (끊긴 경험은 이미 버퍼에 반영됐고 GAE가 부트스트랩하므로 무해)
                 obs, _ = env.reset()
                 ep_stats[0], ep_stats[1] = 0.0, 0
+
+    # ==================================================================
+    def set_bc_regularizer(self, obs, accel, lane_idx, coef: float, class_w=None):
+        """PPO 업데이트마다 시연 미니배치에 대한 BC 손실(가감속 MSE + 차선 CE)을 coef배 더한다."""
+        self.bc_data = (obs.to(self.device), accel.to(self.device), lane_idx.to(self.device))
+        self.bc_coef = float(coef)
+        self.bc_class_w = None if class_w is None else class_w.to(self.device)
 
     # ==================================================================
     def save(self, path: str):

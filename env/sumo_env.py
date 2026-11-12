@@ -83,7 +83,10 @@ class SumoHighwayEnv(gym.Env):
                         에피소드 전체가 "▶를 눌러야 시작"되는 효과가 난다.
         """
         super().__init__()
-        self.cfg_path = cfg_path
+        # cfg_path에 경로 여러 개(list/tuple)를 주면 reset마다 무작위로 하나를 고른다
+        # (예: 평시·크리스마스를 섞어 학습)
+        self.cfg_choices = list(cfg_path) if isinstance(cfg_path, (list, tuple)) else None
+        self.cfg_path = self.cfg_choices[0] if self.cfg_choices else cfg_path
         self.gui = gui
         self.gui_autostart = gui_autostart
 
@@ -172,16 +175,25 @@ class SumoHighwayEnv(gym.Env):
         # 차선변경 명령은 info["lane_change"]에 정확한 -1/0/+1로 반환한다.
         self.action_space = spaces.Box(low=-1.0, high=1.0,
                                        shape=(self.act_dim,), dtype=np.float32)
-        # 관측: 33차원, 범위 [-1,1]. 레이아웃은 env/mdp_config.py 주석 참고.
+        # 관측: 37차원(bus_stop_flag를 끄면 36), 범위 [-1,1]. 레이아웃은 env/mdp_config.py 주석 참고.
         #   [0] 내 속도, [1..20] 5개 차선 × (선행/후행 상대거리·상대속도),
         #   [21..25] 5개 차선의 연결성(끊김 정도), [26..30] 전방 밀도,
-        #   [31..32] 신호 상태·거리 (명동 추가),
+        #   [31..32] 신호 상태·거리, [33..35] 옆 차로 막힘·목표 차로 칸 수,
+        #   [36] 정류장 버스 정차 (명동 추가),
         #   시야 차선: 좌2, 좌1, 현재, 우1, 우2 (5개) — 3차선 도로에서
         #   맨 왼쪽에 있어도 오프셋 -2로 맨 오른쪽 차선까지 보인다.
         self.obs_offsets = (+2, +1, 0, -1, -2)
         n_lanes_view = len(self.obs_offsets)
-        # 명동 추가 2개 [31..32]: 신호 상태·거리 (_route_obs)
-        self.obs_dim = 1 + n_lanes_view * 4 + n_lanes_view + n_lanes_view + 2
+        # 명동 추가 5개: [31..32] 신호 상태·거리 (_route_obs), [33..35] 옆 차로 막힘·목표 차로 칸 수
+        # [36] (선택) 앞쪽 버스정류장에 버스가 정차 중인가 — OBSERVATION["bus_stop_flag"]
+        self.bus_stop_flag = bool(mdp_obs.get("bus_stop_flag", False))
+        self.bus_stop = road.get("bus_stop")
+        self.bus_flag_range = float(mdp_obs.get("bus_flag_range", self.visibility))   # m
+        self.obs_dim = 1 + n_lanes_view * 4 + n_lanes_view + n_lanes_view + 2 + 3 + int(self.bus_stop_flag)
+        self.side_block_gap = float(mdp_obs.get("side_block_gap", 3.0))     # m
+        self.side_block_sumo = bool(mdp_obs.get("side_block_sumo", False))  # [33..34]에 SUMO 판정도 반영
+        self.target_lane_norm = float(mdp_obs.get("target_lane_norm", 3.0))  # 칸
+        self._lane_offset = 0                 # 목표 차로까지 칸 수 (교차로 안에서는 직전 값 유지)
         self.observation_space = spaces.Box(-1.0, 1.0, shape=(self.obs_dim,),
                                             dtype=np.float32)
 
@@ -266,6 +278,8 @@ class SumoHighwayEnv(gym.Env):
         if self._started:
             traci.close()
             self._started = False
+        if self.cfg_choices:
+            self.cfg_path = self.cfg_choices[np.random.randint(len(self.cfg_choices))]
         self._start_sumo()
 
         # 도로 전 구간에 배경차를 미리 배치 (첫 스텝부터 실제 교통류 상태)
@@ -323,7 +337,10 @@ class SumoHighwayEnv(gym.Env):
                 pass
 
         self.step_count = 0
-        return self._get_obs(), {}
+        self._lane_offset = 0
+        obs = self._get_obs()
+        self._prev_lane_gap = abs(self._lane_offset)   # 잠재함수 보상용 직전 값
+        return obs, {}
 
     # ==================================================================
     # 관측 만들기 (레이아웃은 env/mdp_config.py 주석 참고)
@@ -540,7 +557,35 @@ class SumoHighwayEnv(gym.Env):
         # ----- [31..32] 명동 추가: 신호 -----
         obs += self._route_obs()
 
+        # ----- [33..35] 명동 추가: 옆 차로 막힘(왼쪽, 오른쪽), 목표 차로까지 칸 수 -----
+        obs += [self._side_blocked(+1), self._side_blocked(-1),
+                float(np.clip(self._target_lane_offset() / self.target_lane_norm, -1.0, 1.0))]
+
+        # ----- [36] (선택) 앞쪽 정류장 버스 정차 -----
+        if self.bus_stop_flag:
+            obs.append(self._bus_stopped_ahead())
+
         return np.clip(np.array(obs, dtype=np.float32), -1.0, 1.0)
+
+    def _bus_stopped_ahead(self) -> float:
+        """[36]: bus_flag_range(m) 안 앞쪽 정류장(또는 지금 옆을 지나는 정류장)에 버스가 서 있으면 1.
+
+        카메라로 "정류장에 선 버스"를 알아보는 것에 해당한다. 정차가 얼마나 남았는지는 모른다.
+        """
+        bs = self.bus_stop
+        if not bs:
+            return 0.0
+        try:
+            if not traci.busstop.getVehicleIDs(bs["id"]):
+                return 0.0
+            edge, _ = bs["lane"].rsplit("_", 1)
+            road = traci.vehicle.getRoadID(self.ego_id)
+            if road == edge:                       # 정류장이 있는 엣지 위: 정류장 끝을 지나기 전까지
+                return 1.0 if traci.vehicle.getLanePosition(self.ego_id) <= float(bs["end"]) else 0.0
+            d = traci.vehicle.getDrivingDistance(self.ego_id, edge, float(bs["start"]))
+            return 1.0 if 0.0 <= d <= self.bus_flag_range else 0.0
+        except traci.TraCIException:
+            return 0.0
 
     # ------------------------------------------------------------------
     # 명동 추가 관측 [31..32]과 경로 이탈 판정
@@ -572,6 +617,50 @@ class SumoHighwayEnv(gym.Env):
         else:
             sig_obs = [1.0, 1.0]          # 앞에 신호 없음 = 막힘 없음
         return sig_obs
+
+    def _side_blocked(self, direction: int) -> float:
+        """[33..34]: 그 차로로 지금 옮기면 다른 차와 겹치는가 (1 = 막힘 또는 차로 없음, 0 = 비어 있음).
+
+        [5..8], [13..16]의 옆 차로 값은 SUMO getNeighbors 결과라, 바로 옆에 겹쳐 있거나
+        앞뒤 약 2.5 m 안에 있는 차가 "없음"으로 나온다. 그 칸의 계산은 바꾸지 않고
+        차로를 직접 훑은 결과를 여기에 따로 알려 준다.
+        """
+        edge = traci.vehicle.getRoadID(self.ego_id)
+        if edge.startswith(":"):
+            return 0.0
+        target = traci.vehicle.getLaneIndex(self.ego_id) + direction
+        if target < 0 or target >= traci.edge.getLaneNumber(edge):
+            return 1.0
+        front, rear = self._scan_lane_neighbors(direction)
+        for near in (front, rear):
+            if near is not None and near[0] <= self.side_block_gap:
+                return 1.0
+        # 사각지대 경고(BSM)처럼: SUMO 차선변경 모델이 "지금 그쪽으로 가면 위험"이라고 보면 막힘.
+        #   엣지 경계 너머(교차로 안·다음 엣지)의 차까지 본다. 규칙 기반 시연자(sumo_check)와 같은 기준.
+        if self.side_block_sumo:
+            try:
+                if not traci.vehicle.couldChangeLane(self.ego_id, direction):
+                    return 1.0
+            except traci.TraCIException:
+                return 1.0
+        return 0.0
+
+    def _target_lane_offset(self) -> int:
+        """[35]: 경로를 따라가려면 옮겨야 하는 칸 수 (+왼쪽, -오른쪽, 0 = 지금 차로가 맞음).
+
+        연결성 [21..25]는 "어디로든 이어지는가"만 봐서 경로에 맞는 차로를 구분하지 못한다.
+        교차로 내부에서는 값을 읽을 수 없으므로 직전 값을 유지한다.
+        """
+        try:
+            if not traci.vehicle.getRoadID(self.ego_id).startswith(":"):
+                lane = traci.vehicle.getLaneID(self.ego_id)
+                for info in traci.vehicle.getBestLanes(self.ego_id):
+                    if info[0] == lane:
+                        self._lane_offset = int(info[3])
+                        break
+        except traci.TraCIException:
+            pass
+        return self._lane_offset
 
     def _route_failed(self) -> bool:
         """경로 이탈: 내 경로의 다음 엣지로 이어지지 않는 차로의 끝에 도달.
@@ -790,7 +879,8 @@ class SumoHighwayEnv(gym.Env):
 
         # ----- (3) 이벤트/관측 -----
         collided = self.ego_id in traci.simulation.getCollidingVehiclesIDList()
-        arrived = self.ego_id in traci.simulation.getArrivedIDList()
+        # 충돌로 제거된 차량도 getArrivedIDList에 들어가므로 충돌이면 도착으로 치지 않는다
+        arrived = (not collided) and self.ego_id in traci.simulation.getArrivedIDList()
         alive = self.ego_id in traci.vehicle.getIDList()
         route_failed = alive and not collided and self._route_failed()
         teleports = traci.simulation.getStartingTeleportNumber()  # 이번 스텝, 전체 차량
@@ -819,6 +909,23 @@ class SumoHighwayEnv(gym.Env):
             if same_lane_leader is not None:
                 ego_gap = same_lane_leader[0]
             reward = float(self.rw["speed_weight"]) * ego_speed / self.vmax
+            # 시간 비용: 도착까지 걸린 시간만큼 깎인다 (빨리 지나갈수록 이득)
+            #   time_penalty_from_route_index = k면 경로의 k번째 엣지에 들어간 뒤부터만 깎는다.
+            #   1이면 신호 ① 통과 후부터 → 정책이 어쩔 수 없는 ① 적신호 대기(약 127초)는 빼고
+            #   "복잡한 구간을 빨리 지나가기"만 평가한다.
+            tp = float(self.rw.get("time_penalty", 0.0))
+            if tp > 0.0:
+                k = int(self.rw.get("time_penalty_from_route_index", 0))
+                if k <= 0 or traci.vehicle.getRouteIndex(self.ego_id) >= k:
+                    reward -= tp
+            # 목표 차로 잠재함수 F = γ·Φ(s') - Φ(s), Φ = -가중치 × 남은 칸 수.
+            # 최적 정책은 바꾸지 않고 "맞는 방향으로 옮겼다"를 바로 알려 준다.
+            w = float(self.rw.get("lane_shaping", 0.0))
+            if w > 0.0:
+                gap_now = abs(self._lane_offset)        # 위 _get_obs()에서 갱신된 값
+                reward += w * (self._prev_lane_gap
+                               - float(self.rw.get("shaping_gamma", 0.99)) * gap_now)
+                self._prev_lane_gap = gap_now
             if (ego_gap is not None and
                     ego_gap < float(self.rw["close_gap_threshold"]) and
                     ego_speed > float(self.rw.get("close_gap_min_speed", 0.0))):

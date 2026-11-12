@@ -11,10 +11,11 @@
 import argparse
 import glob
 import os
+import numpy as np
 import torch
 
 from env.road_config import ROAD, EGO, TRAFFIC
-from env.cli import add_scenario_args, apply_scenario_args
+from env.cli import add_scenario_args, apply_scenario_args, private_sumo_dir
 from env.mdp_config import SIMULATION, OBSERVATION, ACTION
 from env import road_builder
 from env.sumo_env import SumoHighwayEnv
@@ -80,25 +81,33 @@ if __name__ == "__main__":
                         help="재생/평가할 에피소드 수")
     parser.add_argument("--nogui", action="store_true",
                         help="화면 없이 주행 지표만 측정 (빠름)")
-    parser.add_argument("--algorithm", choices=["auto", "ppo", "bc"], default="auto",
-                        help="기본은 모델 파일에서 PPO/BC 자동 판별")
+    parser.add_argument("--algorithm", choices=["auto", "ppo", "bc", "rule"], default="auto",
+                        help="기본은 모델 파일에서 PPO/BC 자동 판별. rule은 모델 없이 규칙 기반 운전을 평가")
+    # 평가용 교통 시드. 데이터 수집(collect_pomdp_data.py: 워커 시드 0, 1, 2, ...)과 학습(PPO seed=0)이
+    # 쓰는 시드와 겹치지 않게 따로 둔다. 예전에는 PPO 생성자가 np.random.seed(0)을 해서
+    # 평가 에피소드의 SUMO 시드가 수집 워커 0번과 같은 순서로 나왔다 (11/11 확인).
+    parser.add_argument("--eval-seed", type=int, default=777001,
+                        help="평가 교통 시드 (수집·학습 시드와 겹치지 않는 값)")
     add_scenario_args(parser, gui=True)
     args = parser.parse_args()
     traffic, sim = apply_scenario_args(args, TRAFFIC, SIMULATION)
     if args.episodes < 1:
         parser.error("--episodes는 1 이상이어야 합니다.")
 
-    model_path = args.model or find_latest_model()
-    if not os.path.isabs(model_path):
-        model_path = os.path.join(BASE, model_path)
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"모델 파일이 없습니다: {model_path}")
-    print(f"모델 로드: {model_path}")
+    if args.algorithm == "rule":
+        model_path = None
+        print("규칙 기반 운전 평가 (utils/rule_policy.py)")
+    else:
+        model_path = args.model or find_latest_model()
+        if not os.path.isabs(model_path):
+            model_path = os.path.join(BASE, model_path)
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"모델 파일이 없습니다: {model_path}")
+        print(f"모델 로드: {model_path}")
 
     # 주의: 현재 env/ 설정과 다른 설정으로 학습된 모델이면 성능이 이상할 수 있다.
     # 그 run의 설정 스냅샷은 model.pt와 같은 폴더의 *_config.py 에서 확인 가능.
-    sumocfg = road_builder.build(ROAD, EGO, traffic,
-                                 os.path.join(BASE, "env", "sumo"))
+    sumocfg = road_builder.build(ROAD, EGO, traffic, private_sumo_dir(BASE))
     env = SumoHighwayEnv(
         cfg_path=sumocfg,
         road=ROAD, ego=EGO,
@@ -114,8 +123,13 @@ if __name__ == "__main__":
         print("  에피소드가 끝나면 다음 에피소드 창이 다시 뜨고, 또 ▶를 누르면 됩니다.")
 
     try:
-        agent = load_agent(model_path, env.observation_space.shape[0],
-                           env.action_space.shape[0], args.algorithm)
+        if args.algorithm == "rule":
+            from utils.rule_policy import RulePolicy
+            agent = RulePolicy(env)
+        else:
+            agent = load_agent(model_path, env.observation_space.shape[0],
+                               env.action_space.shape[0], args.algorithm)
+        np.random.seed(args.eval_seed)   # 모델 로드(PPO 생성자의 시드 설정) 뒤에 해야 효과가 있다
         metrics = evaluate_policy(agent, env, n_episodes=args.episodes,
                                   deterministic=True)
     finally:
@@ -134,3 +148,4 @@ if __name__ == "__main__":
     print(f"  Teleport     : {metrics.teleports:.1f} 회/에피소드")
     print(f"  평균 보상    : {metrics.ep_return:.2f}")
     print(f"  평균 길이    : {metrics.ep_length:.0f} 스텝")
+    print(f"  도착 소요시간: {metrics.arrival_time:.1f} 초 (도착한 에피소드 평균)")
