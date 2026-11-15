@@ -148,5 +148,6 @@ bash scripts/training/train_final_model.sh                                    # 
 
 - 학습 과정 전체 (무엇을 왜 했고 무엇이 실패했는지): [docs/training/학습_과정_기록.md](docs/training/학습_과정_기록.md)
 - 모델 인계, 성능 표, 데이터 수집 명령: [docs/training/모델_인계.md](docs/training/모델_인계.md)
+- 신경망 구조, 하이퍼파라미터, 보상 함수와 그 이유, offline RL을 안 한 이유: [docs/training/모델_설계_정리.md](docs/training/모델_설계_정리.md)
 - 공식 평가 원본 결과 (Episode별): [docs/training/official_eval/](docs/training/official_eval/)
 - 영상과 그래프 다시 만들기: 학습 과정 기록 11.3절
