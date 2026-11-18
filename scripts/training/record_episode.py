@@ -4,13 +4,11 @@
 출발한다 (모델 행동이 달라지는 순간부터는 교통도 조금씩 달라진다).
 
     # 1) 화면 없이 장면 후보 찾기: 장면마다 결과를 한 줄 JSON으로 출력
-    python scripts/training/record_episode.py models/bc_v3_3.pt --christmas --search 0 40
-    BUS_STOP_FLAG=0 python scripts/training/record_episode.py models/bc_dag3_36dim.pt --christmas --search 0 40
+    python scripts/training/record_episode.py models/strict_bc_dagger.pt --christmas --search 0 160
 
     # 2) 고른 장면을 sumo-gui로 녹화 (frames/에 0000.png ... + steps.json)
-    python scripts/training/record_episode.py models/bc_v3_3.pt --christmas --scene 17 --frames out/v3_3
+    python scripts/training/record_episode.py models/strict_bc_dagger.pt --christmas --scene 55 --window 600,800 --frames out/s55_dagger
 
-모델 관측 차원은 import 시점에 정해지므로, 36차원 모델(dag3)은 BUS_STOP_FLAG=0으로 따로 실행한다.
 """
 import argparse
 import json
@@ -60,6 +58,7 @@ def run_episode(env, agent, frames_dir=None):
         traci.vehicle.highlight(env.ego_id, (255, 60, 60, 255), 6)
     done, t, t_in, t_out, info = False, 0, None, None, {}
     bus_seen = bypass = False
+    red = 0
     steps = []
     while not done:
         road, lane = "", -1
@@ -82,12 +81,13 @@ def run_episode(env, agent, frames_dir=None):
                     traci.vehicle.setColor(v, (255, 255, 255, 255))
             traci.gui.screenshot(view, os.path.join(frames_dir, f"{t:04d}.png"))
         obs, _, term, trunc, info = env.step(agent.predict(obs, deterministic=True))
+        red += int(bool(info.get("red_light", False)))
         done = term or trunc
         t += 1
     dt = env.step_length
     outcome = ("collided" if info.get("collided") else "arrived" if info.get("arrived")
                else "route_failed" if info.get("route_failed") else "timeout")
-    return {"outcome": outcome, "bus_seen": bus_seen, "bypass": bypass, "total_s": t * dt,
+    return {"outcome": outcome, "red_light": red, "bus_seen": bus_seen, "bypass": bypass, "total_s": t * dt,
             "section_s": None if t_in is None or t_out is None else (t_out - t_in) * dt,
             "t_in": t_in, "t_out": t_out, "steps": steps}
 

@@ -1,6 +1,6 @@
 """record_episode.py로 녹화한 두 Episode를 나란히 붙여 발표 영상(mp4)을 만든다.
 
-    python scripts/training/make_compare_video.py LEFT_FRAMES RIGHT_FRAMES OUT.mp4 [--start 296 --end 396 --speed 2 --zoom 307 332]
+    python scripts/training/make_compare_video.py LEFT_FRAMES RIGHT_FRAMES OUT.mp4 [--start 306 --end 404 --speed 2 --zoom 326 360]
 
 LEFT/RIGHT_FRAMES는 record_episode.py --frames 폴더 (0000.png ... + steps.json).
 필요한 것: ffmpeg, Pillow. 한글 글꼴은 macOS의 Apple SD Gothic Neo를 쓴다.
@@ -17,6 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 W, H, FPS = 1920, 1080, 30
 BG, INK, INK2, ACCENT, GOOD = (24, 24, 23), (240, 239, 236), (170, 168, 160), (255, 92, 92), (120, 200, 255)
 FONT = "/System/Library/Fonts/AppleSDGothicNeo.ttc"
+BUS_OBS = "[37]"   # 버스 정차 관측 칸 번호 (--bus-obs)
 
 
 def font(size, bold=False):
@@ -84,7 +85,7 @@ def overtake_events(info):
     t6 = first(lambda s: s["road"] == "S2" and s["lane"] == 0, t5 or 0) if t5 else None
     for t, text in ((t1, "신호 ① 통과, 복잡 구간(S1) 진입"),
                     (t2, "출구 쪽인 맨 오른쪽 차로로 이동"),
-                    (t3, "80 m 앞 정류장에 선 버스 감지 (관측 [36] 켜짐)"),
+                    (t3, f"80 m 앞 정류장에 선 버스 감지 (관측 {BUS_OBS} 켜짐)"),
                     (t4, "합류점 직후 왼쪽으로 한 칸 이동"),
                     (t5, "정류장 옆 차로로 버스 옆을 지나감"),
                     (t6, "넓어진 S2에서 맨 오른쪽으로 복귀 → 출구")):
@@ -93,7 +94,7 @@ def overtake_events(info):
     return ev
 
 
-def zoom_segment(src, info, crop, start, end, speed, put):
+def zoom_segment(src, info, crop, start, end, speed, put, title="확대: 최종 모델이 버스를 지나가는 순간"):
     ev = overtake_events(info)
     x0, y0, x1, y1 = crop
     zh = 880
@@ -110,7 +111,7 @@ def zoom_segment(src, info, crop, start, end, speed, put):
         d = ImageDraw.Draw(im)
         fr = Image.open(last).convert("RGB").crop(crop).resize((zw, zh), Image.LANCZOS)
         im.paste(fr, (zx, zy))
-        d.text((40, 40), "확대: 최종 모델이 버스를 지나가는 순간", font=font(34, True), fill=INK)
+        d.text((40, 40), title, font=font(34, True), fill=INK)
         d.text((40, 88), f"{speed:g}배속  ·  빨간 원: 자율주행차  ·  흰색: 정류장에 선 버스", font=font(24), fill=INK2)
         cur = max((j for j, (t, _) in enumerate(ev) if t <= t_step), default=-1)
         y = 200
@@ -124,7 +125,7 @@ def zoom_segment(src, info, crop, start, end, speed, put):
         s = steps.get(t_step)
         if s:
             flag = "켜짐" if s["bus"] else "꺼짐"
-            d.text((tx, y + 30), f"관측 [36] 버스 감지: {flag}", font=font(30, True),
+            d.text((tx, y + 30), f"관측 {BUS_OBS} 버스 감지: {flag}", font=font(30, True),
                    fill=ACCENT if s["bus"] else INK2)
         put(im, hold)
     put(im, FPS * 2)
@@ -135,17 +136,22 @@ if __name__ == "__main__":
     p.add_argument("left")
     p.add_argument("right")
     p.add_argument("out")
-    p.add_argument("--start", type=int, default=296)
-    p.add_argument("--end", type=int, default=396)
+    p.add_argument("--start", type=int, default=306)
+    p.add_argument("--end", type=int, default=404)
     p.add_argument("--speed", type=float, default=2.0)
-    p.add_argument("--left-label", default="1단계 BC (추월을 안 배움)")
-    p.add_argument("--right-label", default="최종 모델 v3_3 (버스 추월을 배움)")
-    p.add_argument("--intro", default="크리스마스 시나리오 · 같은 교통 · 같은 시드")
+    p.add_argument("--left-label", default="BC (strict)")
+    p.add_argument("--right-label", default="BC + DAgger (strict 최종)")
+    p.add_argument("--intro", default="크리스마스 · 같은 교통 · 보조 규칙 없는 환경(strict)")
     p.add_argument("--zoom", nargs=2, type=int, default=None, metavar=("FROM", "TO"),
                    help="오른쪽 모델의 이 스텝 구간을 확대·느리게 다시 보여 준다")
-    p.add_argument("--zoom-crop", default="40,0,470,590", help="확대할 영역 x0,y0,x1,y1 (녹화 프레임 픽셀)")
+    p.add_argument("--zoom-crop", default="120,0,500,556", help="확대할 영역 x0,y0,x1,y1 (녹화 프레임 픽셀)")
     p.add_argument("--zoom-speed", type=float, default=0.5)
+    p.add_argument("--zoom-title", default="확대: 최종 모델(BC + DAgger)이 버스를 지나가는 순간")
+    p.add_argument("--bus-obs", default="[37]", help="버스 정차 관측 칸 번호")
+    p.add_argument("--outro", nargs="*", default=None,
+                   help="마지막 화면의 설명 줄")
     a = p.parse_args()
+    BUS_OBS = a.bus_obs
 
     work = tempfile.mkdtemp()
     infos = [json.load(open(os.path.join(f, "steps.json"))) for f in (a.left, a.right)]
@@ -188,12 +194,14 @@ if __name__ == "__main__":
     put(im, FPS * 2)   # 마지막 화면 잠깐 정지
     if a.zoom:
         crop = tuple(int(v) for v in a.zoom_crop.split(","))
-        zoom_segment(a.right, infos[1], crop, a.zoom[0], a.zoom[1], a.zoom_speed, put)
+        zoom_segment(a.right, infos[1], crop, a.zoom[0], a.zoom[1], a.zoom_speed, put, a.zoom_title)
 
     L, R = [(i["t_out"] - i["t_in"]) * 0.5 for i in infos]
     put(card([(f"복잡 구간 통과시간  {L:.1f}초 → {R:.1f}초", 60, INK),
-              ("정류장에 선 버스를 옆 차로로 지나감 (관측 [36] + 추월 시연으로 학습)", 32, INK2),
-              ("공식 시드 300 Episode: 버스를 만나면 평균 37.7초 → 26.0초, 전체 평균 22.6초 → 21.3초", 30, INK2)]),
+              *[(t, 32 if i == 0 else 30, INK2) for i, t in enumerate(a.outro or [
+                  "왼쪽 BC는 버스 뒤에서 기다렸고, 오른쪽 최종 모델은 옆 차로로 지나감 (관측 [37] + expert 추월 시연)",
+                  "최종 평가 크리스마스, 최종 모델이 버스를 만나면: 추월 평균 20.8초, 버스 뒤 대기 27.8초",
+                  "BC도 추월을 배워서 추월 비율은 비슷하다 (BC 37/59, 최종 27/51). 두 모델의 큰 차이는 신호 위반이다"])]]),
         FPS * 6)
 
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i",

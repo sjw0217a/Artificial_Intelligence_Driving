@@ -173,6 +173,8 @@ if __name__ == "__main__":
                         help=">0이면 PPO 업데이트마다 시연(--bc-data) 따라 하기 손실을 이 배율로 더한다")
     parser.add_argument("--critic-warmup", type=int, default=0,
                         help="처음 N번의 업데이트는 critic만 학습 (BC로 시작한 정책 보호)")
+    parser.add_argument("--warmup-value-head-only", action="store_true",
+                        help="critic warmup 동안 가치 출력층만 바꾼다 (공유 앞단이 바뀌어 정책이 흔들리는 것을 막음)")
     parser.add_argument("--bc-data", nargs="*", default=[], metavar="NPZ",
                         help="--bc-coef에 쓸 시연 NPZ (생략 시 --pretrain 파일)")
     args = parser.parse_args()
@@ -241,6 +243,7 @@ if __name__ == "__main__":
             with torch.no_grad():
                 agent.policy.log_std.fill_(args.init_log_std)
     agent.critic_warmup = args.critic_warmup
+    agent.warmup_value_head_only = args.warmup_value_head_only
     if args.bc_coef > 0:
         from utils.pretrain import load_demos, lane_class_weights
         bc_paths = args.bc_data or args.pretrain

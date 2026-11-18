@@ -3,7 +3,7 @@
 전체 도착시간(약 190초)의 2/3는 신호 ① 적신호 대기라 정책이 줄일 수 없다. 그래서
 "복잡한 구간을 얼마나 빨리 지나가는가"는 이 구간 시간으로 따로 잰다.
 
-    python eval_section_time.py models/bc_v3_3.pt --episodes 100 --christmas
+    python eval_section_time.py models/strict_bc_dagger.pt --episodes 100 --christmas
     python eval_section_time.py --algorithm rule --episodes 100 --christmas --traffic 1.3
 
 출력: 충돌·완주·경로이탈 비율, 도착한 에피소드의 구간 통과시간 평균·표준편차·중앙값, 전체 도착시간.
@@ -33,6 +33,7 @@ def run(agent, env, episodes):
         obs, _ = env.reset()
         done, t, t_in, t_out = False, 0, None, None
         bus_seen, bypass = False, False   # 버스 정차를 봤는가 / 정류장 옆을 왼쪽 차로로 지나갔는가
+        red = 0                           # 적신호에 정지선을 넘은 횟수
         info = {}
         while not done:
             if env.ego_id in traci.vehicle.getIDList():
@@ -46,6 +47,7 @@ def run(agent, env, episodes):
                     if road == "S1b" and traci.vehicle.getLaneIndex(env.ego_id) >= 1:
                         bypass = True
             obs, _, term, trunc, info = env.step(agent.predict(obs, deterministic=True))
+            red += int(bool(info.get("red_light")))
             done = term or trunc
             t += 1
         dt = env.step_length
@@ -56,6 +58,7 @@ def run(agent, env, episodes):
             "total_s": t * dt,
             "bus_seen": bus_seen,
             "bypass": bypass,
+            "red_light": red,
         })
     return rows
 
@@ -100,6 +103,8 @@ if __name__ == "__main__":
     seen = [r for r in rows if r["bus_seen"]]
     if seen:
         print(f"  정차 버스를 본 에피소드 {len(seen)}회 중 왼쪽 차로로 지나감(추월) {sum(r['bypass'] for r in seen)}회")
+    print(f"  신호 위반(적신호에 정지선 통과): {sum(r['red_light'] for r in rows)}회, "
+          f"위반한 에피소드 {sum(r['red_light'] > 0 for r in rows)}개")
     if args.json:
         with open(args.json, "w") as f:
             json.dump(rows, f)

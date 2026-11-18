@@ -138,6 +138,9 @@ class PPO:
         # 처음 이 횟수의 업데이트는 critic(가치)만 학습한다. BC로 시작한 정책에 새 보상을 줄 때,
         # 가치가 새 보상에 맞기 전의 엉터리 advantage로 actor가 망가지는 것을 막는다.
         self.critic_warmup, self._updates_done = 0, 0
+        # True면 critic warmup 동안 가치 출력층(v_head)만 바꾼다. 가치와 정책이 앞단(trunk)을 같이 쓰므로,
+        #   False(예전)면 가치만 학습해도 앞단이 바뀌어 정책이 흔들린다 (strict 1차 PPO: 첫 업데이트 approx_kl 0.47).
+        self.warmup_value_head_only = False
         self.max_grad_norm = max_grad_norm
         self.normalize_advantage = normalize_advantage
 
@@ -315,6 +318,11 @@ class PPO:
 
                 self.optimizer.zero_grad()
                 loss.backward()
+                if warmup and self.warmup_value_head_only:
+                    # 가치 출력층 말고는 기울기를 지운다 → Adam이 그 파라미터를 건너뛰어 정책이 그대로 남는다
+                    for name, p in self.policy.named_parameters():
+                        if not name.startswith("v_head"):
+                            p.grad = None
                 nn.utils.clip_grad_norm_(self.policy.parameters(),
                                          self.max_grad_norm)
                 self.optimizer.step()

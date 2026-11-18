@@ -28,8 +28,12 @@ class RulePolicy:
     def __init__(self, env, time_headway=1.2, min_gap=2.0,
                  front_gap=3.0, front_tau=0.3, rear_gap=3.0, rear_tau=0.5,
                  spawn_protect=60.0, sumo_check=True, wait_speed=5.0, overtake_bus=True,
-                 overtake_slow=False, slow_speed=5.0, slow_lookahead=30.0, always_bypass=False):
+                 overtake_slow=False, slow_speed=5.0, slow_lookahead=30.0, always_bypass=False,
+                 stop_at_red=True, stop_margin=1.0):
         self.env = env
+        # 적·황신호에 정지선 앞(stop_margin m)에 선다. ego speed_mode가 0이면 꼭 필요하다
+        self.stop_at_red = bool(stop_at_red)
+        self.stop_margin = float(stop_margin)
         self.vmax = float(env.vmax)
         self.W = float(env.visibility)
         self.a_max = float(env.max_accel)
@@ -63,16 +67,26 @@ class RulePolicy:
     # 연결성 칸: 왼쪽(+1) 22, 오른쪽(-1) 24. -1이면 그 차로가 없다
     _CONN = {+1: 22, -1: 24}
 
+    def _idm(self, v, gap, closing) -> float:
+        free = 1.0 - (v / self.vmax) ** 4
+        s_star = self.s0 + v * self.T + v * closing / (2 * np.sqrt(self.a_max * self.b_max))
+        return self.a_max * (free - (max(s_star, self.s0) / max(gap, 0.1)) ** 2)
+
     def _accel(self, obs) -> float:
         v = float(obs[0]) * self.vmax
-        free = 1.0 - (v / self.vmax) ** 4
         if obs[9] >= 1.0:                       # 시야 안에 앞차 없음
-            a = self.a_max * free
+            a = self.a_max * (1.0 - (v / self.vmax) ** 4)
         else:
-            gap = max(float(obs[9]) * self.W, 0.1)
             closing = -float(obs[10]) * self.vmax          # 내가 더 빠르면 +
-            s_star = self.s0 + v * self.T + v * closing / (2 * np.sqrt(self.a_max * self.b_max))
-            a = self.a_max * (free - (max(s_star, self.s0) / gap) ** 2)
+            a = self._idm(v, float(obs[9]) * self.W, closing)
+        # 신호 정지 (speed_mode 0이면 SUMO가 대신 서 주지 않는다): 관측 [31] 신호, [32] 정지선 거리만 쓴다.
+        #   적색이면 정지선에 멈춰 선 가상의 앞차가 있는 것처럼 IDM으로 선다 (신호 앞 IDM의 표준 방법).
+        #   황색은 최대 감속으로 정지선 앞에 설 수 있을 때만 선다. 이미 못 서는 거리면 그대로 지나간다.
+        if self.stop_at_red and obs[32] < 1.0:
+            sig, stop = float(obs[31]), float(obs[32]) * 200.0
+            can_stop = stop >= v * v / (2.0 * self.b_max)
+            if (sig < -0.5 or abs(sig) < 0.5) and can_stop:
+                a = min(a, self._idm(v, stop - self.stop_margin, v))
         return float(np.clip(a / self.a_max if a >= 0 else a / self.b_max, -1.0, 1.0))
 
     # 버스 추월 때 엣지별로 있을 차로: S1 1번 → S1m 2번 → S1b 1번 (모두 정류장 차로 S1b_0의 한 칸 왼쪽 줄)

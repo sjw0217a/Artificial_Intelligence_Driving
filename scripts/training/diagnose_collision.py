@@ -1,11 +1,11 @@
-"""충돌 장면 분석: 평가에서 충돌한 Episode 하나를 그대로 다시 돌려, 충돌 직전 몇 초를 스텝마다 기록한다 (학습 과정 기록 11.9절).
+"""충돌 장면 분석: 평가에서 충돌한 Episode 하나를 그대로 다시 돌려, 충돌 직전 몇 초를 스텝마다 기록한다.
 
 eval_section_time.py는 np.random.seed(--eval-seed) 뒤 Episode마다 SUMO 시드를 np.random에서 하나씩 뽑는다.
 그래서 앞 Episode들을 돌리지 않고 난수만 같은 횟수 뽑으면 i번째 Episode의 교통을 그대로 재현할 수 있다.
 결과(충돌 시각)가 평가 JSON과 같은지 확인해서 재현이 맞는지 검사한다.
 
-    python scripts/training/diagnose_collision.py models/bc_v3_3.pt --christmas --bus-scale 3 \
-        --eval-seed 993001 --episode 20 --out docs/training/collisions/val_bus3_s1_ep20.json
+    python scripts/training/diagnose_collision.py models/strict_bc_dagger.pt --christmas --bus-scale 3 \
+        --eval-seed 441110 --episode 20 --out out/collision_bus3_s1_ep20.json
     # sumo-gui 화면을 PNG로 저장 (영상용): --frames 폴더 --from-s 140
 
 기록: 스텝마다 ego 위치·속도·행동, 같은 순간 선생(규칙)이라면 낼 행동, 모델이 본 관측 일부, 20 m 안 주변 차. 충돌 순간 SUMO 충돌 정보(누가 누구를, 어느 차로에서).
@@ -59,11 +59,16 @@ def obs_view(o):
                 "lead_dv": None if o[i] >= 1 else round(float(o[i + 1]) * VMAX, 2),
                 "rear_gap": None if o[i + 2] <= -1 else round(float(-o[i + 2]) * W, 1),
                 "rear_dv": None if o[i + 2] <= -1 else round(float(o[i + 3]) * VMAX, 2)}
-    return {"left": lane(1), "cur": lane(2), "right": lane(3),
-            "left_blocked": float(o[33]), "right_blocked": float(o[34]),
-            "target_lane": round(float(o[35]) * OBSERVATION["target_lane_norm"], 2),
-            "bus": float(o[36]) if len(o) > 36 else None,
-            "signal": float(o[31]), "stopline_m": round(float(o[32]) * 200, 1)}
+    out = {"left": lane(1), "cur": lane(2), "right": lane(3),
+           "left_blocked": float(o[33]), "right_blocked": float(o[34]),
+           "signal": float(o[31]), "stopline_m": round(float(o[32]) * 200, 1)}
+    if OBSERVATION.get("route_guidance", "lane") == "turn":       # [35] 회전 방향, [36] 회전까지 거리, [37] 버스
+        out.update(turn=float(o[35]), turn_m=round(float(o[36]) * OBSERVATION["turn_dist_norm"], 1),
+                   bus=float(o[37]) if len(o) > 37 else None)
+    else:                                                          # 예전 37차원: [35] 목표 차로 칸 수, [36] 버스
+        out.update(target_lane=round(float(o[35]) * OBSERVATION["target_lane_norm"], 2),
+                   bus=float(o[36]) if len(o) > 36 else None)
+    return out
 
 
 def main():
