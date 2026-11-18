@@ -50,6 +50,9 @@ def main():
     root = os.path.join(BASE, "docs", "training", "strict", "final_eval" if final else "val")
     models = [m for m in ORDER if os.path.isdir(os.path.join(root, m))]
     models += sorted(m for m in os.listdir(root) if os.path.isdir(os.path.join(root, m)) and m not in models)
+    # 평가가 아직 끝나지 않은 폴더(파일 12개가 다 없는 것)는 뺀다
+    models = [m for m in models if all(os.path.exists(os.path.join(root, m, f"{c}_s{s}.json"))
+                                       for c, _ in CONDS for s in (1, 2, 3))]
     data = {m: {c: load(os.path.join(root, m), c) for c, _ in CONDS} for m in models}
     print(f"[{'최종 평가' if final else '검증'}] {os.path.relpath(root, BASE)}")
     for c, cname in CONDS:

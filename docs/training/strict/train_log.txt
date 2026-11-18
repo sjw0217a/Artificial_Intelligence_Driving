@@ -52,3 +52,11 @@
         4개 비교 실험 문서(docs/training/실험_설정과_결과.md) 작성. 새로 돌린 실험은 없음
 [14:32] β 쿨다운 라운드 1 (β = 0.5) 시작
 [14:50] β 쿨다운 라운드 2 (β = 0.25) 시작
+[15:09] β 쿨다운 라운드 3 (β = 0.125) 시작
+[15:28] β 쿨다운 끝: results/strict_beta_3/pretrained_model.pt
+[15:28] 검증 평가 시작: results/strict_beta_3/pretrained_model.pt 
+[15:43] 검증 평가 끝
+[15:43] 재현성: 학습 시드 1로 다시 학습 시작
+[15:45] 재현성: 학습 시드 2로 다시 학습 시작
+[15:48] 검증 평가 시작: results/strict_3_seed1/pretrained_model.pt results/strict_3_seed2/pretrained_model.pt 
+[15:55] β 쿨다운 검증 결과 (참고): 실패 17 (β = 0은 23), 짝 비교 p = 0.35, 시간 −0.21 ±0.26초 → 통계적 차이 없음. 선정은 그대로
