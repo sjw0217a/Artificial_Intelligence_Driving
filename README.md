@@ -73,7 +73,7 @@ expert(규칙) 시연 1,000 Episode ──▶ BC ──▶ DAgger 3라운드 ─
 **어떻게 여기까지 왔나**
 1. 처음부터 PPO는 실패했다 (충돌 7~42%, 또는 움직이지 않다가 시간초과).
 2. 관측을 33 → 37차원으로 늘리고, 규칙 기반 시연으로 BC + DAgger를 하자 잘 됐다 (충돌 0~0.3%, 버스 추월로 시간 단축). 그 위의 PPO 미세조정은 효과가 없었다.
-3. 교수님 Q&A(11/17, 보조 규칙 금지, 라우팅은 지도 수준만)를 보고, SUMO가 대신 해 주던 신호 정지·교차로 양보·차선변경 판정을 끄고, 차선 단위 안내 관측을 회전 방향·거리로 바꿔 37 → 38차원으로 고쳤다.
+3. 교수님 Q&A(보조 규칙 금지, 라우팅은 지도 수준만)를 보고, SUMO가 대신 해 주던 신호 정지·교차로 양보·차선변경 판정을 끄고, 차선 단위 안내 관측을 회전 방향·거리로 바꿔 37 → 38차원으로 고쳤다.
 4. 결과를 보기 전에 평가 계획을 쓰고, 처음부터 다시 학습했다: BC, BC + DAgger, BC + PPO(3번 시도). 검증 시드로 BC + DAgger를 고르고, 처음 쓰는 시드로 한 번만 평가했다.
 
 자세한 과정: [학습_과정_기록.md](docs/training/학습_과정_기록.md)
@@ -180,6 +180,7 @@ bash scripts/training/train_strict_model.sh                                     
 ### 자세한 문서
 
 - 학습 과정 전체 (무엇을 왜 했고 무엇이 실패했는지): [docs/training/학습_과정_기록.md](docs/training/학습_과정_기록.md)
+- 비교 실험(BC, BC + DAgger, BC + PPO, 참고용 expert)의 설정, 학습 곡선, 조건별 결과: [docs/training/실험_설정과_결과.md](docs/training/실험_설정과_결과.md)
 - 평가 계획과 변경 기록 (결과를 보기 전에 정한 규칙): [docs/training/strict/평가_계획.md](docs/training/strict/평가_계획.md)
 - 모델 인계, 성능 표, 데이터 수집 명령: [docs/training/모델_인계.md](docs/training/모델_인계.md)
 - 신경망 구조, 하이퍼파라미터, 보상 함수와 그 이유, offline RL을 안 한 이유, expert와의 비교: [docs/training/모델_설계_정리.md](docs/training/모델_설계_정리.md)

@@ -639,7 +639,7 @@ class SumoHighwayEnv(gym.Env):
 
     def _route_obs(self):
         """[31..32]: 신호 상태·거리. 실제 운전자가 보는 정보만 쓴다.
-        (경로가 고정이라 목표 차로 칸 수는 넣지 않는다. 11/9 팀 회의)
+        (경로가 고정이라 목표 차로 칸 수는 넣지 않는다. 팀 회의)
         정규화와 기본값은 env/mdp_config.py 관측 주석 참고."""
         tls = traci.vehicle.getNextTLS(self.ego_id)
         if tls:

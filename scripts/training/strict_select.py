@@ -15,7 +15,11 @@ import sys
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CONDS = [("normal", "평시"), ("xmas", "크리스마스"), ("xmas13", "크리스마스 x1.3"), ("xmasbus3", "버스 3배")]
 ORDER = ["bc", "bc_dagger", "bc_ppo"]
-NAMES = {"bc": "BC", "bc_dagger": "BC + DAgger", "bc_ppo": "BC + PPO"}
+NAMES = {"bc": "BC", "bc_dagger": "BC + DAgger", "bc_ppo": "BC + PPO", "bc_ppo2": "BC + PPO 2차", "bc_ppo3": "BC + PPO 3차",
+         "bc_dagger_beta": "β 쿨다운(참고)",
+         "bc_dagger_seed1": "DAgger 시드1(참고)", "bc_dagger_seed2": "DAgger 시드2(참고)"}
+# 참고 비교: 표에는 넣지만 선정 후보가 아니다 (평가 계획 2절: β를 바꾼 것은 후보가 아니라 참고 비교로만)
+REFERENCE = {"bc_dagger_beta", "bc_dagger_seed1", "bc_dagger_seed2"}
 
 
 def load(d, cond):
@@ -75,7 +79,7 @@ def main():
     if final:
         return
     print("\n=== 선정 (평가 계획 3-1절) ===")
-    ok = [m for m in models if tot[m]["collided"] / tot[m]["n"] < 0.05 and tot[m]["red_ep"] / tot[m]["n"] <= 0.01]
+    ok = [m for m in models if m not in REFERENCE and tot[m]["collided"] / tot[m]["n"] < 0.05 and tot[m]["red_ep"] / tot[m]["n"] <= 0.01]
     for m in models:
         print(f"  {NAMES.get(m, m)}: 충돌 5% 미만 {'O' if tot[m]['collided'] / tot[m]['n'] < 0.05 else 'X'}, "
               f"신호 위반 1% 이하 {'O' if tot[m]['red_ep'] / tot[m]['n'] <= 0.01 else 'X'}")

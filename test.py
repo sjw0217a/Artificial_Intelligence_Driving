@@ -85,7 +85,7 @@ if __name__ == "__main__":
                         help="기본은 모델 파일에서 PPO/BC 자동 판별. rule은 모델 없이 규칙 기반 운전을 평가")
     # 평가용 교통 시드. 데이터 수집(collect_pomdp_data.py: 워커 시드 0, 1, 2, ...)과 학습(PPO seed=0)이
     # 쓰는 시드와 겹치지 않게 따로 둔다. 예전에는 PPO 생성자가 np.random.seed(0)을 해서
-    # 평가 에피소드의 SUMO 시드가 수집 워커 0번과 같은 순서로 나왔다 (11/11 확인).
+    # 평가 에피소드의 SUMO 시드가 수집 워커 0번과 같은 순서로 나왔다.
     parser.add_argument("--eval-seed", type=int, default=777001,
                         help="평가 교통 시드 (수집·학습 시드와 겹치지 않는 값)")
     add_scenario_args(parser, gui=True)

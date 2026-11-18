@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 보조 규칙을 뺀 모델(strict) 만들기: 규칙 기반 시연 → BC → DAgger 3라운드 (교수님 Q&A 11/17 반영).
+# 보조 규칙을 뺀 모델(strict) 만들기: 규칙 기반 시연 → BC → DAgger 3라운드 (교수님 Q&A 반영).
 #   최종 모델 v3_3(scripts/training/train_final_model.sh)과 Episode 수·조건 비율·학습 설정이 같고, 환경만 다르다.
 #     - ego speed_mode 0: 적신호 정지·교차로 양보를 SUMO가 대신하지 않는다
 #     - 관측 38차원: [33..34] 측면 레이더(SUMO 차선변경 판정 안 씀), [35..36] 다음 회전 방향·거리(차선 단위 안내 안 씀)
