@@ -3,7 +3,7 @@
 저장 단위는 POMDP transition 하나다:
     (o_t, a_t, r_t, o_{t+1}, terminated, truncated, s_t, s_{t+1})
 
-- o_t / o_{t+1}: agent가 실제로 보는 부분관측 (33차원)
+- o_t / o_{t+1}: agent가 실제로 보는 부분관측 (37차원, env/mdp_config.py 참고)
 - a_t: [가감속 raw, 차선변경 raw]
 - lane_change: 실제 환경에 적용된 {-1, 0, +1}
 - s_t / s_{t+1}: SUMO 내부의 privileged simulator state.
@@ -54,7 +54,7 @@ from datetime import datetime
 import numpy as np
 
 from env.road_config import ROAD, EGO, TRAFFIC
-from env.cli import add_scenario_args, apply_scenario_args
+from env.cli import add_scenario_args, apply_scenario_args, private_sumo_dir
 from env.mdp_config import SIMULATION, OBSERVATION, ACTION
 from env import road_builder
 from env.sumo_env import SumoHighwayEnv
@@ -72,6 +72,11 @@ def detect_algorithm(model_path: str) -> str:
     import torch
     ck = torch.load(model_path, map_location="cpu", weights_only=True)
     return "bc" if isinstance(ck, dict) and ck.get("algorithm") == "bc" else "ppo"
+
+
+def rule_kwargs(args) -> dict:
+    """--rule-kw KEY=VALUE ... → RulePolicy 인자 (예: overtake_bus=0)."""
+    return {k: float(v) for k, v in (kv.split("=") for kv in (args.rule_kw or []))}
 
 
 def make_policy(args, env, worker_seed: int):
@@ -102,6 +107,12 @@ def make_policy(args, env, worker_seed: int):
         def act(obs):
             return np.clip(model.predict(obs), -1.0, 1.0).astype(np.float32)
         return act
+
+    if args.policy == "rule":
+        # 규칙 기반 운전 (utils/rule_policy.py). BC 시연 데이터와 기준선 수집용.
+        from utils.rule_policy import RulePolicy
+        rule = RulePolicy(env, **rule_kwargs(args))
+        return lambda obs: rule.predict(obs)
 
     if args.policy == "keep-lane":
         # 완만한 가속 + 차선 유지. GUI/파이프라인 점검용.
@@ -190,6 +201,17 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
         gui_autostart=True,
     )
     act = make_policy(args, env, worker_seed)
+    # DAgger: 운전은 act(학생 모델)가 하고, 저장하는 행동은 규칙(선생)이 그 순간 낼 행동.
+    #   BC는 선생이 다닌 상태만 보고 배워서, 학생이 조금 벗어난 상태에서는 어떻게 할지 모른다.
+    #   학생이 실제로 가는 상태에 선생의 정답을 붙여 모으면 그 빈틈이 메워진다.
+    label = None
+    if args.label == "rule":
+        from utils.rule_policy import RulePolicy
+        _teacher = RulePolicy(env, **rule_kwargs(args))
+        label = lambda obs: _teacher.predict(obs)  # noqa: E731
+    # DAgger β (Ross 외 2011): 스텝마다 β 확률로 선생 행동을, 나머지는 학생 행동을 실행한다. 정답은 항상 선생.
+    #   β = 0(기본)이면 난수를 아예 뽑지 않아 예전 수집과 똑같다. 교통 난수(np.random)와 따로 쓴다.
+    beta_rng = np.random.default_rng(worker_seed + 999_983) if args.beta > 0 else None
     # sumo_env가 SUMO --seed를 np.random(전역)에서 뽑는다. PPO 생성자가 전역 시드를
     # HPARAMS["seed"]로 되돌려 놓으므로 정책을 만든 "뒤에" 워커별로 다시 시드해야
     # 워커들이 같은 교통 패턴을 반복하지 않는다.
@@ -220,6 +242,10 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
                     # 관측 벡터와 별도로 저장하는 부가 데이터 (분석/시각화용).
                     detected = env.get_detected_vehicles()
                     action = act(obs)
+                    target = None if label is None else np.asarray(label(obs), dtype=np.float32)
+                    teacher_drove = beta_rng is not None and beta_rng.random() < args.beta
+                    if teacher_drove:
+                        action = target.copy()
                     next_obs, reward, terminated, truncated, info = env.step(action)
                     state_tp1 = env.get_privileged_state()
                     done = terminated or truncated
@@ -247,11 +273,19 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
                             "collided": bool(info["collided"]),
                             "arrived": bool(info["arrived"]),
                             "route_failed": bool(info["route_failed"]),
+                            "red_light": bool(info.get("red_light", False)),   # 적신호에 정지선 통과
                             "teleports": int(info["teleports"]),
                             "lane_before": info["lane_before"],
                             "lane_after": info["lane_after"],
                         },
                     }
+                    if target is not None:
+                        record["executed_action_raw"] = record["action_raw"]
+                        record["action_raw"] = target.tolist()
+                        record["label"] = args.label
+                        if beta_rng is not None:
+                            record["beta"] = args.beta
+                            record["teacher_drove"] = bool(teacher_drove)
                     if done:
                         # 중간 스텝의 next_*는 다음 레코드의 observation/state와 같으므로
                         # 에피소드 마지막 스텝에만 기록한다 (iter_transitions가 복원).
@@ -262,8 +296,12 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
 
                     obs_buf.append(np.asarray(obs, dtype=np.float32))
                     next_obs_buf.append(np.asarray(next_obs, dtype=np.float32))
-                    action_raw_buf.append(np.asarray(action, dtype=np.float32))
-                    lane_cmd_buf.append(int(info["lane_change"]))
+                    if target is None:
+                        action_raw_buf.append(np.asarray(action, dtype=np.float32))
+                        lane_cmd_buf.append(int(info["lane_change"]))
+                    else:   # DAgger: 선생의 행동을 정답으로 저장 (규칙의 차선 값은 이미 -1/0/+1)
+                        action_raw_buf.append(target)
+                        lane_cmd_buf.append(int(target[1]))
                     reward_buf.append(float(reward))
                     term_buf.append(bool(terminated))
                     trunc_buf.append(bool(truncated))
@@ -332,7 +370,7 @@ def merge_parts(parts, jsonl_path, npz_path):
 def main():
     parser = argparse.ArgumentParser(description="SUMO POMDP trajectory collector")
     parser.add_argument("--episodes", type=int, default=50)
-    parser.add_argument("--policy", choices=["random", "keep-lane", "ppo", "bc"], default=None,
+    parser.add_argument("--policy", choices=["random", "keep-lane", "rule", "ppo", "bc"], default=None,
                         help="행동 정책. 생략 시 --model이 있으면 파일을 보고 ppo/bc 자동 판별, "
                              "없으면 random")
     parser.add_argument("--model", default=None,
@@ -341,6 +379,14 @@ def main():
     parser.add_argument("--stochastic", action="store_true",
                         help="ppo: 결정적(μ, argmax 차선) 대신 분포에서 샘플링해서 행동. "
                              "상태 다양성이 필요할 때")
+    parser.add_argument("--label", choices=["rule"], default=None,
+                        help="DAgger: 운전은 --policy/--model이 하고, 저장하는 행동(action_raw, lane_change)은 "
+                             "규칙 기반이 그 상태에서 낼 행동으로 바꾼다")
+    parser.add_argument("--beta", type=float, default=0.0,
+                        help="DAgger β: --label과 함께, 스텝마다 이 확률로 선생 행동을 실행한다 "
+                             "(0 = 학생만 운전, 1 = 선생만 운전). 정답은 항상 선생")
+    parser.add_argument("--rule-kw", nargs="*", default=[], metavar="KEY=VALUE",
+                        help="규칙 기반(--policy rule, --label rule)의 인자. 예: overtake_bus=0")
     parser.add_argument("--device", default="cpu",
                         help="정책 추론 장치 (cpu/cuda). 관측 1개씩 추론이라 cpu로 충분")
     parser.add_argument("--seed", type=int, default=0)
@@ -359,6 +405,10 @@ def main():
     args = parser.parse_args()
     if args.policy in ("ppo", "bc") and args.model is None:
         parser.error(f"--policy {args.policy}에는 --model이 필요합니다.")
+    if args.beta > 0 and args.label is None:
+        parser.error("--beta에는 --label rule이 필요합니다.")
+    if not 0.0 <= args.beta <= 1.0:
+        parser.error("--beta는 0~1 사이여야 합니다.")
     if args.model is not None and not os.path.exists(args.model):
         parser.error(f"모델 파일이 없습니다: {args.model}")
     if args.policy is None:
@@ -375,8 +425,7 @@ def main():
 
     # 도로 파일은 부모에서 한 번만 생성한다 (워커들이 동시에 쓰면 파일이 깨진다).
     traffic, _ = apply_scenario_args(args, TRAFFIC, SIMULATION)
-    sumocfg = road_builder.build(ROAD, EGO, traffic,
-                                 os.path.join(BASE, "env", "sumo"))
+    sumocfg = road_builder.build(ROAD, EGO, traffic, private_sumo_dir(BASE))
 
     t0 = time.time()
     if workers == 1:

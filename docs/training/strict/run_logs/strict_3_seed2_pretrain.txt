@@ -1,0 +1,4 @@
+[pretrain] 시연 840864 step, 차선 명령 (왼쪽/유지/오른쪽) = [100, 835344, 5420], 가중치 [20.0, 1.0, 12.4]
+[pretrain] epoch  10  accel=0.0295  lane=0.0158  value=0.9800  변경 재현율=99%  불필요 변경=0.34%
+[pretrain] epoch  20  accel=0.0110  lane=0.0077  value=0.9312  변경 재현율=99%  불필요 변경=0.13%
+[pretrain] epoch  30  accel=0.0081  lane=0.0055  value=0.9120  변경 재현율=99%  불필요 변경=0.10%

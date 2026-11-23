@@ -1,0 +1,16 @@
+[pretrain] 시연 384684 step, 차선 명령 (왼쪽/유지/오른쪽) = [37, 382126, 2521], 가중치 [20.0, 1.0, 12.3]
+[pretrain] epoch  10  accel=0.0076  lane=0.0229  value=0.9268  변경 재현율=99%  불필요 변경=1.06%
+[pretrain] epoch  20  accel=0.0057  lane=0.0138  value=0.8911  변경 재현율=99%  불필요 변경=0.21%
+[pretrain] epoch  30  accel=0.0035  lane=0.0099  value=0.8772  변경 재현율=99%  불필요 변경=0.11%
+[pretrain] 시연 532641 step, 차선 명령 (왼쪽/유지/오른쪽) = [75, 529079, 3487], 가중치 [20.0, 1.0, 12.3]
+[pretrain] epoch  10  accel=0.0297  lane=0.0228  value=1.0080  변경 재현율=97%  불필요 변경=0.46%
+[pretrain] epoch  20  accel=0.0227  lane=0.0121  value=0.9582  변경 재현율=100%  불필요 변경=0.30%
+[pretrain] epoch  30  accel=0.0160  lane=0.0076  value=0.9382  변경 재현율=99%  불필요 변경=0.10%
+[pretrain] 시연 686160 step, 차선 명령 (왼쪽/유지/오른쪽) = [89, 681565, 4506], 가중치 [20.0, 1.0, 12.3]
+[pretrain] epoch  10  accel=0.0368  lane=0.0189  value=0.9971  변경 재현율=96%  불필요 변경=0.30%
+[pretrain] epoch  20  accel=0.0148  lane=0.0094  value=0.9566  변경 재현율=99%  불필요 변경=0.18%
+[pretrain] epoch  30  accel=0.0082  lane=0.0067  value=0.9296  변경 재현율=100%  불필요 변경=0.17%
+[pretrain] 시연 840864 step, 차선 명령 (왼쪽/유지/오른쪽) = [100, 835344, 5420], 가중치 [20.0, 1.0, 12.4]
+[pretrain] epoch  10  accel=0.0297  lane=0.0158  value=0.9711  변경 재현율=99%  불필요 변경=0.43%
+[pretrain] epoch  20  accel=0.0104  lane=0.0077  value=0.9276  변경 재현율=100%  불필요 변경=0.24%
+[pretrain] epoch  30  accel=0.0080  lane=0.0061  value=0.9087  변경 재현율=100%  불필요 변경=0.12%
