@@ -1,0 +1,316 @@
+{
+ "bc": {
+  "n": 1200,
+  "collided": 40,
+  "red": 124,
+  "route_failed": 34,
+  "timeout": 0,
+  "fail": 156,
+  "fail_pct_rep": [
+   13.5,
+   14.75,
+   10.75
+  ],
+  "section_mean": 21.862344582593252,
+  "cond": {
+   "normal": {
+    "fail": 13,
+    "collided": 0,
+    "red": 13,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 23,
+    "bypass": 19,
+    "sec_bus": 17.52173913043478
+   },
+   "xmas": {
+    "fail": 47,
+    "collided": 11,
+    "red": 41,
+    "route_failed": 12,
+    "timeout": 0,
+    "bus_seen": 43,
+    "bypass": 30,
+    "sec_bus": 25.216216216216218
+   },
+   "xmas13": {
+    "fail": 45,
+    "collided": 15,
+    "red": 31,
+    "route_failed": 8,
+    "timeout": 0,
+    "bus_seen": 38,
+    "bypass": 21,
+    "sec_bus": 24.796296296296298
+   },
+   "xmasbus3": {
+    "fail": 51,
+    "collided": 14,
+    "red": 39,
+    "route_failed": 14,
+    "timeout": 0,
+    "bus_seen": 153,
+    "bypass": 101,
+    "sec_bus": 26.375
+   }
+  }
+ },
+ "bc_dagger": {
+  "n": 1200,
+  "collided": 18,
+  "red": 0,
+  "route_failed": 3,
+  "timeout": 1,
+  "fail": 22,
+  "fail_pct_rep": [
+   2.5,
+   1.75,
+   1.25
+  ],
+  "section_mean": 21.25848896434635,
+  "cond": {
+   "normal": {
+    "fail": 0,
+    "collided": 0,
+    "red": 0,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 18,
+    "bypass": 16,
+    "sec_bus": 18.38888888888889
+   },
+   "xmas": {
+    "fail": 6,
+    "collided": 5,
+    "red": 0,
+    "route_failed": 1,
+    "timeout": 0,
+    "bus_seen": 40,
+    "bypass": 23,
+    "sec_bus": 23.32894736842105
+   },
+   "xmas13": {
+    "fail": 8,
+    "collided": 6,
+    "red": 0,
+    "route_failed": 1,
+    "timeout": 1,
+    "bus_seen": 37,
+    "bypass": 22,
+    "sec_bus": 23.41176470588235
+   },
+   "xmasbus3": {
+    "fail": 8,
+    "collided": 7,
+    "red": 0,
+    "route_failed": 1,
+    "timeout": 0,
+    "bus_seen": 145,
+    "bypass": 93,
+    "sec_bus": 25.636690647482013
+   }
+  }
+ },
+ "bc_dagger_beta": {
+  "n": 1200,
+  "collided": 14,
+  "red": 3,
+  "route_failed": 2,
+  "timeout": 0,
+  "fail": 18,
+  "fail_pct_rep": [
+   2.5,
+   1.5,
+   0.5
+  ],
+  "section_mean": 20.9370777027027,
+  "cond": {
+   "normal": {
+    "fail": 1,
+    "collided": 1,
+    "red": 0,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 18,
+    "bypass": 14,
+    "sec_bus": 17.823529411764707
+   },
+   "xmas": {
+    "fail": 3,
+    "collided": 3,
+    "red": 0,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 37,
+    "bypass": 24,
+    "sec_bus": 21.91891891891892
+   },
+   "xmas13": {
+    "fail": 9,
+    "collided": 7,
+    "red": 1,
+    "route_failed": 1,
+    "timeout": 0,
+    "bus_seen": 37,
+    "bypass": 24,
+    "sec_bus": 23.757575757575758
+   },
+   "xmasbus3": {
+    "fail": 5,
+    "collided": 3,
+    "red": 2,
+    "route_failed": 1,
+    "timeout": 0,
+    "bus_seen": 150,
+    "bypass": 97,
+    "sec_bus": 25.23972602739726
+   }
+  }
+ },
+ "bc_ppo": {
+  "n": 1200,
+  "collided": 20,
+  "red": 6,
+  "route_failed": 2,
+  "timeout": 0,
+  "fail": 28,
+  "fail_pct_rep": [
+   2.75,
+   1.75,
+   2.5
+  ],
+  "section_mean": 22.47792869269949,
+  "cond": {
+   "normal": {
+    "fail": 1,
+    "collided": 1,
+    "red": 0,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 19,
+    "bypass": 14,
+    "sec_bus": 17.68421052631579
+   },
+   "xmas": {
+    "fail": 8,
+    "collided": 5,
+    "red": 3,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 42,
+    "bypass": 26,
+    "sec_bus": 25.5
+   },
+   "xmas13": {
+    "fail": 9,
+    "collided": 6,
+    "red": 3,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 38,
+    "bypass": 16,
+    "sec_bus": 31.542857142857144
+   },
+   "xmasbus3": {
+    "fail": 10,
+    "collided": 8,
+    "red": 0,
+    "route_failed": 2,
+    "timeout": 0,
+    "bus_seen": 142,
+    "bypass": 82,
+    "sec_bus": 26.894736842105264
+   }
+  }
+ },
+ "nobus": {
+  "n": 1200,
+  "collided": 109,
+  "red": 0,
+  "route_failed": 12,
+  "timeout": 0,
+  "fail": 121,
+  "fail_pct_rep": [
+   10.0,
+   9.0,
+   11.25
+  ],
+  "section_mean": 20.00046339202966,
+  "cond": {
+   "normal": {
+    "fail": 23,
+    "collided": 23,
+    "red": 0,
+    "route_failed": 0,
+    "timeout": 0,
+    "bus_seen": 17,
+    "bypass": 13,
+    "sec_bus": 17.035714285714285
+   },
+   "xmas": {
+    "fail": 33,
+    "collided": 27,
+    "red": 0,
+    "route_failed": 6,
+    "timeout": 0,
+    "bus_seen": 37,
+    "bypass": 19,
+    "sec_bus": 21.558823529411764
+   },
+   "xmas13": {
+    "fail": 27,
+    "collided": 23,
+    "red": 0,
+    "route_failed": 4,
+    "timeout": 0,
+    "bus_seen": 36,
+    "bypass": 17,
+    "sec_bus": 26.225806451612904
+   },
+   "xmasbus3": {
+    "fail": 38,
+    "collided": 36,
+    "red": 0,
+    "route_failed": 2,
+    "timeout": 0,
+    "bus_seen": 146,
+    "bypass": 80,
+    "sec_bus": 25.606299212598426
+   }
+  }
+ },
+ "_pairs": {
+  "normal": {
+   "n": 17,
+   "final_only": 2,
+   "nobus_only": 0,
+   "both": 13,
+   "sec_diff_mean": 0.35714285714285715,
+   "sec_diff_se": 1.0514623143176085
+  },
+  "xmas": {
+   "n": 37,
+   "final_only": 5,
+   "nobus_only": 1,
+   "both": 18,
+   "sec_diff_mean": -0.9090909090909091,
+   "sec_diff_se": 1.1428413855417063
+  },
+  "xmas13": {
+   "n": 36,
+   "final_only": 6,
+   "nobus_only": 1,
+   "both": 16,
+   "sec_diff_mean": 2.2333333333333334,
+   "sec_diff_se": 1.11229630276024
+  },
+  "xmasbus3": {
+   "n": 143,
+   "final_only": 21,
+   "nobus_only": 8,
+   "both": 70,
+   "sec_diff_mean": -0.2190082644628099,
+   "sec_diff_se": 1.2288414856125733
+  }
+ }
+}

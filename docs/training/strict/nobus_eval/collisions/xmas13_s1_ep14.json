@@ -1,0 +1,2611 @@
+{
+ "model": "models/strict_nobus_dagger.pt",
+ "eval_seed": 443007,
+ "episode": 14,
+ "outcome": "collided",
+ "total_s": 162.5,
+ "collision": [
+  {
+   "collider": "ego",
+   "victim": "f_W_in_W_out.2",
+   "collider_type": "ego_type",
+   "victim_type": "car_krauss",
+   "collider_v": 3.65,
+   "victim_v": 3.76,
+   "type": "side",
+   "lane": "S1m_1",
+   "pos": 11.5
+  }
+ ],
+ "steps": [
+  {
+   "t_s": 150.5,
+   "road": "NE_in",
+   "lane": 0,
+   "pos": 248.1,
+   "v": 3.77,
+   "accel_cmd": 0.69,
+   "lane_cmd": 0.0,
+   "teacher_accel": 0.69,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 6.4,
+     "lead_dv": 1.61,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 9.1,
+     "lead_dv": 3.22,
+     "rear_gap": 3.0,
+     "rear_dv": -1.75
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 1.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 5.4,
+    "turn": -1.0,
+    "turn_m": 192.5,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "NE_in_1",
+     "pos": 248.0,
+     "v": 2.39,
+     "dist": 3.2,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "NE_in_1",
+     "pos": 239.2,
+     "v": 1.17,
+     "dist": 9.5,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "NE_in_0",
+     "pos": 238.0,
+     "v": 2.02,
+     "dist": 10.0,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.11",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 10.0,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out.12",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 12.8,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_S_out_look.7",
+     "type": "look_krauss",
+     "lane": "N_in_1",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 13.2,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 8.4,
+     "v": 5.38,
+     "dist": 13.6,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.13",
+     "type": "car_idm",
+     "lane": "N_in_1",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 15.4,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_W_out_look.3",
+     "type": "look_krauss",
+     "lane": "N_in_0",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 16.4,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.15",
+     "type": "car_krauss",
+     "lane": "NE_in_1",
+     "pos": 231.3,
+     "v": 0.43,
+     "dist": 17.0,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.11",
+     "type": "car_krauss",
+     "lane": ":J1_0_0",
+     "pos": 11.2,
+     "v": 6.99,
+     "dist": 17.2,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_W_out.9",
+     "type": "car_krauss",
+     "lane": "N_in_0",
+     "pos": 244.8,
+     "v": 0.0,
+     "dist": 18.0,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out_look.1",
+     "type": "look_idm",
+     "lane": "N_in_2",
+     "pos": 236.8,
+     "v": 0.0,
+     "dist": 18.4,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "NE_in_0",
+     "pos": 229.5,
+     "v": 0.7,
+     "dist": 18.5,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 151.0,
+   "road": "NE_in",
+   "lane": 0,
+   "pos": 250.5,
+   "v": 4.81,
+   "accel_cmd": 0.67,
+   "lane_cmd": 0.0,
+   "teacher_accel": 0.71,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 7.1,
+     "lead_dv": 1.45,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 10.8,
+     "lead_dv": 3.43,
+     "rear_gap": 3.9,
+     "rear_dv": -1.81
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 1.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 3.0,
+    "turn": -1.0,
+    "turn_m": 190.1,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "NE_in_1",
+     "pos": 249.6,
+     "v": 3.1,
+     "dist": 3.3,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.11",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 8.3,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "NE_in_0",
+     "pos": 239.5,
+     "v": 3.0,
+     "dist": 10.9,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "NE_in_1",
+     "pos": 240.0,
+     "v": 1.7,
+     "dist": 10.9,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_S_out_look.7",
+     "type": "look_krauss",
+     "lane": "N_in_1",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 11.5,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out.12",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 12.4,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 11.6,
+     "v": 6.26,
+     "dist": 14.1,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_W_out_look.3",
+     "type": "look_krauss",
+     "lane": "N_in_0",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 14.6,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out.13",
+     "type": "car_idm",
+     "lane": "N_in_1",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 14.7,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_W_out.9",
+     "type": "car_krauss",
+     "lane": "N_in_0",
+     "pos": 244.8,
+     "v": 0.0,
+     "dist": 17.0,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.11",
+     "type": "car_krauss",
+     "lane": "S1_2",
+     "pos": 0.2,
+     "v": 8.24,
+     "dist": 18.8,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out_look.1",
+     "type": "look_idm",
+     "lane": "N_in_2",
+     "pos": 236.8,
+     "v": 0.0,
+     "dist": 18.8,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.15",
+     "type": "car_krauss",
+     "lane": "NE_in_1",
+     "pos": 231.7,
+     "v": 0.79,
+     "dist": 19.0,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 151.5,
+   "road": "NE_in",
+   "lane": 0,
+   "pos": 253.4,
+   "v": 5.81,
+   "accel_cmd": 0.62,
+   "lane_cmd": 0.0,
+   "teacher_accel": 0.72,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 7.7,
+     "lead_dv": 1.3,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 12.7,
+     "lead_dv": 3.67,
+     "rear_gap": 4.9,
+     "rear_dv": -1.84
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 1.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 0.1,
+    "turn": -1.0,
+    "turn_m": 187.2,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "NE_in_1",
+     "pos": 251.5,
+     "v": 3.82,
+     "dist": 3.7,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.11",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 6.9,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_S_out_look.7",
+     "type": "look_krauss",
+     "lane": "N_in_1",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 9.8,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "NE_in_0",
+     "pos": 241.5,
+     "v": 3.97,
+     "dist": 11.9,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "NE_in_1",
+     "pos": 241.3,
+     "v": 2.58,
+     "dist": 12.5,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.12",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 12.6,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_W_out_look.3",
+     "type": "look_krauss",
+     "lane": "N_in_0",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 12.8,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out.13",
+     "type": "car_idm",
+     "lane": "N_in_1",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 14.4,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 15.1,
+     "v": 7.11,
+     "dist": 14.6,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_W_out.9",
+     "type": "car_krauss",
+     "lane": "N_in_0",
+     "pos": 244.8,
+     "v": 0.0,
+     "dist": 16.3,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out_look.1",
+     "type": "look_idm",
+     "lane": "N_in_2",
+     "pos": 236.8,
+     "v": 0.0,
+     "dist": 19.6,
+     "signals": 8
+    }
+   ]
+  },
+  {
+   "t_s": 152.0,
+   "road": ":J1_0",
+   "lane": 0,
+   "pos": 3.3,
+   "v": 6.74,
+   "accel_cmd": 0.72,
+   "lane_cmd": 0.0,
+   "teacher_accel": 0.72,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.3,
+     "lead_dv": 1.2,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 14.6,
+     "lead_dv": 3.81,
+     "rear_gap": 5.9,
+     "rear_dv": -2.02
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 183.8,
+    "turn": -1.0,
+    "turn_m": 183.8,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 0.3,
+     "v": 4.57,
+     "dist": 4.6,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.11",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 6.6,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_S_out_look.7",
+     "type": "look_krauss",
+     "lane": "N_in_1",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 8.5,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_W_out_look.3",
+     "type": "look_krauss",
+     "lane": "N_in_0",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 11.0,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "NE_in_0",
+     "pos": 243.9,
+     "v": 4.73,
+     "dist": 13.1,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.12",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 13.7,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "NE_in_1",
+     "pos": 243.0,
+     "v": 3.38,
+     "dist": 14.4,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.13",
+     "type": "car_idm",
+     "lane": "N_in_1",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 14.7,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 4.0,
+     "v": 7.94,
+     "dist": 15.4,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_W_out.9",
+     "type": "car_krauss",
+     "lane": "N_in_0",
+     "pos": 244.8,
+     "v": 0.0,
+     "dist": 15.9,
+     "signals": 8
+    }
+   ]
+  },
+  {
+   "t_s": 152.5,
+   "road": ":J1_0",
+   "lane": 0,
+   "pos": 7.2,
+   "v": 7.82,
+   "accel_cmd": 0.68,
+   "lane_cmd": 0.0,
+   "teacher_accel": 0.67,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.7,
+     "lead_dv": 0.69,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 16.4,
+     "lead_dv": 3.65,
+     "rear_gap": 6.8,
+     "rear_dv": -1.88
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 179.9,
+    "turn": -1.0,
+    "turn_m": 179.9,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 3.0,
+     "v": 5.32,
+     "dist": 5.9,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.11",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 8.5,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_S_out_look.7",
+     "type": "look_krauss",
+     "lane": "N_in_1",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 9.0,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_W_out_look.3",
+     "type": "look_krauss",
+     "lane": "N_in_0",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 10.4,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "NE_in_0",
+     "pos": 246.8,
+     "v": 5.94,
+     "dist": 14.4,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_E_out.12",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 16.0,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out.13",
+     "type": "car_idm",
+     "lane": "N_in_1",
+     "pos": 244.3,
+     "v": 0.0,
+     "dist": 16.3,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 8.2,
+     "v": 8.52,
+     "dist": 16.4,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "NE_in_1",
+     "pos": 244.9,
+     "v": 3.8,
+     "dist": 16.6,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_W_out.9",
+     "type": "car_krauss",
+     "lane": "N_in_0",
+     "pos": 244.8,
+     "v": 0.0,
+     "dist": 16.6,
+     "signals": 8
+    }
+   ]
+  },
+  {
+   "t_s": 153.0,
+   "road": ":J1_0",
+   "lane": 0,
+   "pos": 11.6,
+   "v": 8.84,
+   "accel_cmd": 0.66,
+   "lane_cmd": 0.0,
+   "teacher_accel": 0.63,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.8,
+     "lead_dv": 0.18,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 18.3,
+     "lead_dv": 3.9,
+     "rear_gap": 7.8,
+     "rear_dv": -1.93
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 175.5,
+    "turn": -1.0,
+    "turn_m": 175.5,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 6.0,
+     "v": 6.06,
+     "dist": 6.8,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_S_out_look.7",
+     "type": "look_krauss",
+     "lane": "N_in_1",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 12.5,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out.11",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 12.8,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_W_out_look.3",
+     "type": "look_krauss",
+     "lane": "N_in_0",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 13.0,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "NE_in_0",
+     "pos": 250.3,
+     "v": 6.91,
+     "dist": 15.4,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 12.7,
+     "v": 9.01,
+     "dist": 16.8,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "NE_in_1",
+     "pos": 247.3,
+     "v": 4.86,
+     "dist": 18.4,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_W_out.9",
+     "type": "car_krauss",
+     "lane": "N_in_0",
+     "pos": 244.8,
+     "v": 0.0,
+     "dist": 19.8,
+     "signals": 8
+    }
+   ]
+  },
+  {
+   "t_s": 153.5,
+   "road": "S1",
+   "lane": 2,
+   "pos": 1.4,
+   "v": 9.83,
+   "accel_cmd": 0.58,
+   "lane_cmd": -1.0,
+   "teacher_accel": 0.56,
+   "teacher_lane": -1.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.6,
+     "lead_dv": -0.39,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 20.3,
+     "lead_dv": 4.01,
+     "rear_gap": 8.9,
+     "rear_dv": -2.3
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 10.6,
+     "rear_dv": -9.83
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 170.6,
+    "turn": -1.0,
+    "turn_m": 170.6,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 9.4,
+     "v": 6.77,
+     "dist": 7.7,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": ":J1_0_0",
+     "pos": 0.6,
+     "v": 7.54,
+     "dist": 16.3,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 17.5,
+     "v": 9.44,
+     "dist": 16.4,
+     "signals": 0
+    },
+    {
+     "id": "f_N_in_S_out_look.7",
+     "type": "look_krauss",
+     "lane": "N_in_1",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 17.6,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_W_out_look.3",
+     "type": "look_krauss",
+     "lane": "N_in_0",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 17.7,
+     "signals": 8
+    },
+    {
+     "id": "f_N_in_E_out.11",
+     "type": "car_idm",
+     "lane": "N_in_2",
+     "pos": 251.8,
+     "v": 0.0,
+     "dist": 18.0,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "NE_in_1",
+     "pos": 250.0,
+     "v": 5.42,
+     "dist": 19.7,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 154.0,
+   "road": "S1",
+   "lane": 1,
+   "pos": 6.7,
+   "v": 10.7,
+   "accel_cmd": -0.47,
+   "lane_cmd": 0.0,
+   "teacher_accel": -0.14,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 10.0,
+     "rear_dv": -2.22
+    },
+    "cur": {
+     "lead_gap": 27.1,
+     "lead_dv": -8.12,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 15.9,
+     "rear_dv": -10.7
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 165.2,
+    "turn": -1.0,
+    "turn_m": 165.2,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": ":J1_0_1",
+     "pos": 13.1,
+     "v": 7.43,
+     "dist": 10.8,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 22.4,
+     "v": 9.82,
+     "dist": 16.9,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": ":J1_0_0",
+     "pos": 4.8,
+     "v": 8.48,
+     "dist": 18.2,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 154.5,
+   "road": "S1",
+   "lane": 1,
+   "pos": 11.4,
+   "v": 9.42,
+   "accel_cmd": 0.04,
+   "lane_cmd": -1.0,
+   "teacher_accel": -0.01,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.5,
+     "lead_dv": 0.72,
+     "rear_gap": 10.0,
+     "rear_dv": 0.18
+    },
+    "cur": {
+     "lead_gap": 23.6,
+     "lead_dv": -6.88,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 20.6,
+     "rear_dv": -9.42
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 160.5,
+    "turn": -1.0,
+    "turn_m": 160.5,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 2.0,
+     "v": 8.04,
+     "dist": 11.4,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1_2",
+     "pos": 27.4,
+     "v": 10.14,
+     "dist": 16.3,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": ":J1_0_0",
+     "pos": 9.6,
+     "v": 9.6,
+     "dist": 17.7,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "W_in_0",
+     "pos": 159.4,
+     "v": 3.17,
+     "dist": 18.7,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 155.0,
+   "road": "S1",
+   "lane": 0,
+   "pos": 16.2,
+   "v": 9.48,
+   "accel_cmd": 0.65,
+   "lane_cmd": 1.0,
+   "teacher_accel": 0.78,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 20.1,
+     "lead_dv": -7.17,
+     "rear_gap": 25.4,
+     "rear_dv": -9.48
+    },
+    "cur": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 155.8,
+    "turn": -1.0,
+    "turn_m": 155.8,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "W_in_0",
+     "pos": 161.5,
+     "v": 4.22,
+     "dist": 12.8,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 6.4,
+     "v": 8.76,
+     "dist": 13.7,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": ":MP_1_2",
+     "pos": 1.8,
+     "v": 10.27,
+     "dist": 17.6,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": ":J1_0_0",
+     "pos": 14.9,
+     "v": 10.66,
+     "dist": 17.6,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": ":MP_0_0",
+     "pos": 3.2,
+     "v": 5.63,
+     "dist": 18.1,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 155.5,
+   "road": "S1",
+   "lane": 1,
+   "pos": 21.4,
+   "v": 10.46,
+   "accel_cmd": -0.72,
+   "lane_cmd": -1.0,
+   "teacher_accel": -0.92,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 25.4,
+     "lead_dv": 0.14,
+     "rear_gap": 8.7,
+     "rear_dv": 1.36
+    },
+    "cur": {
+     "lead_gap": 16.2,
+     "lead_dv": -7.79,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 30.6,
+     "rear_dv": -10.46
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 150.6,
+    "turn": -1.0,
+    "turn_m": 150.6,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "W_in_0",
+     "pos": 164.1,
+     "v": 5.23,
+     "dist": 11.6,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 11.1,
+     "v": 9.41,
+     "dist": 12.2,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1_2",
+     "pos": 5.7,
+     "v": 11.83,
+     "dist": 16.0,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_0",
+     "pos": 3.0,
+     "v": 6.63,
+     "dist": 17.2,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 3.3,
+     "v": 10.16,
+     "dist": 17.5,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 156.0,
+   "road": "S1",
+   "lane": 0,
+   "pos": 25.7,
+   "v": 8.51,
+   "accel_cmd": -0.88,
+   "lane_cmd": 1.0,
+   "teacher_accel": -1.0,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 13.2,
+     "lead_dv": -5.89,
+     "rear_gap": 34.8,
+     "rear_dv": -8.51
+    },
+    "cur": {
+     "lead_gap": 8.0,
+     "lead_dv": -0.88,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 146.3,
+    "turn": -1.0,
+    "turn_m": 146.3,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "W_in_0",
+     "pos": 167.1,
+     "v": 5.88,
+     "dist": 5.7,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 15.9,
+     "v": 9.76,
+     "dist": 13.7,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1_2",
+     "pos": 12.2,
+     "v": 12.86,
+     "dist": 14.9,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 6.9,
+     "v": 7.63,
+     "dist": 15.5,
+     "signals": 2
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 8.6,
+     "v": 10.55,
+     "dist": 19.7,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "W_in_0",
+     "pos": 150.4,
+     "v": 4.22,
+     "dist": 19.7,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 156.5,
+   "road": "S1",
+   "lane": 1,
+   "pos": 28.7,
+   "v": 6.14,
+   "accel_cmd": -0.18,
+   "lane_cmd": -1.0,
+   "teacher_accel": -0.11,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 3.1,
+     "rear_dv": 6.73
+    },
+    "cur": {
+     "lead_gap": 11.4,
+     "lead_dv": -3.74,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": 7.9,
+     "lead_dv": -0.2,
+     "rear_gap": 37.9,
+     "rear_dv": -6.14
+    },
+    "left_blocked": 1.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 143.2,
+    "turn": -1.0,
+    "turn_m": 143.2,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": ":MP_0_0",
+     "pos": 0.3,
+     "v": 6.86,
+     "dist": 7.3,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 21.0,
+     "v": 10.07,
+     "dist": 10.1,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1_2",
+     "pos": 18.6,
+     "v": 12.87,
+     "dist": 10.6,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 9.8,
+     "v": 5.93,
+     "dist": 15.7,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 13.3,
+     "v": 2.4,
+     "dist": 18.9,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.12",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 13.2,
+     "v": 9.19,
+     "dist": 19.8,
+     "signals": 8
+    }
+   ]
+  },
+  {
+   "t_s": 157.0,
+   "road": ":MP_1",
+   "lane": 0,
+   "pos": 0.7,
+   "v": 5.65,
+   "accel_cmd": -0.44,
+   "lane_cmd": 0.0,
+   "teacher_accel": -0.29,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 9.8,
+     "lead_dv": -3.16,
+     "rear_gap": 40.7,
+     "rear_dv": -5.65
+    },
+    "cur": {
+     "lead_gap": 7.6,
+     "lead_dv": -0.69,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 140.4,
+    "turn": -1.0,
+    "turn_m": 140.4,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 0.8,
+     "v": 7.86,
+     "dist": 4.8,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1_2",
+     "pos": 25.0,
+     "v": 12.85,
+     "dist": 9.2,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1_3",
+     "pos": 26.0,
+     "v": 10.13,
+     "dist": 11.1,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 12.3,
+     "v": 4.96,
+     "dist": 15.1,
+     "signals": 10
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "W_in_0",
+     "pos": 155.7,
+     "v": 5.72,
+     "dist": 17.4,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 14.5,
+     "v": 2.49,
+     "dist": 17.6,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 157.5,
+   "road": ":MP_1",
+   "lane": 0,
+   "pos": 3.0,
+   "v": 4.47,
+   "accel_cmd": -0.17,
+   "lane_cmd": 0.0,
+   "teacher_accel": -0.05,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.8,
+     "lead_dv": -1.91,
+     "rear_gap": 43.0,
+     "rear_dv": -4.47
+    },
+    "cur": {
+     "lead_gap": 7.3,
+     "lead_dv": -0.48,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 138.2,
+    "turn": -1.0,
+    "turn_m": 138.2,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 4.2,
+     "v": 6.89,
+     "dist": 5.7,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": ":MP_1_2",
+     "pos": 0.5,
+     "v": 12.64,
+     "dist": 6.9,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": ":MP_1_3",
+     "pos": 0.3,
+     "v": 10.14,
+     "dist": 10.0,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 14.3,
+     "v": 3.99,
+     "dist": 14.8,
+     "signals": 10
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "W_in_0",
+     "pos": 159.0,
+     "v": 6.6,
+     "dist": 15.5,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 15.8,
+     "v": 2.56,
+     "dist": 16.6,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 158.0,
+   "road": "S1m",
+   "lane": 1,
+   "pos": 1.5,
+   "v": 4.0,
+   "accel_cmd": 0.05,
+   "lane_cmd": 0.0,
+   "teacher_accel": -0.08,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.1,
+     "lead_dv": -1.34,
+     "rear_gap": 45.0,
+     "rear_dv": -4.0
+    },
+    "cur": {
+     "lead_gap": 6.8,
+     "lead_dv": -0.99,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 5.8,
+     "rear_dv": 2.62
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 136.2,
+    "turn": -1.0,
+    "turn_m": 136.2,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 7.2,
+     "v": 5.92,
+     "dist": 6.5,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 3.4,
+     "v": 12.88,
+     "dist": 6.7,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 1.8,
+     "v": 10.06,
+     "dist": 9.6,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "W_in_0",
+     "pos": 162.3,
+     "v": 6.62,
+     "dist": 13.7,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 15.8,
+     "v": 3.02,
+     "dist": 14.3,
+     "signals": 10
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 17.1,
+     "v": 2.66,
+     "dist": 16.0,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "S1_2",
+     "pos": 18.7,
+     "v": 12.27,
+     "dist": 18.3,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1_3",
+     "pos": 19.5,
+     "v": 9.92,
+     "dist": 18.9,
+     "signals": 1
+    }
+   ]
+  },
+  {
+   "t_s": 158.5,
+   "road": "S1m",
+   "lane": 1,
+   "pos": 3.5,
+   "v": 4.07,
+   "accel_cmd": -0.33,
+   "lane_cmd": 0.0,
+   "teacher_accel": -0.47,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 7.4,
+     "lead_dv": -1.57,
+     "rear_gap": 47.0,
+     "rear_dv": -4.07
+    },
+    "cur": {
+     "lead_gap": 5.8,
+     "lead_dv": -2.03,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 4.7,
+     "rear_dv": 2.3
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 134.1,
+    "turn": -1.0,
+    "turn_m": 134.1,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 9.6,
+     "v": 4.95,
+     "dist": 6.9,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 9.7,
+     "v": 12.58,
+     "dist": 8.9,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 6.7,
+     "v": 9.87,
+     "dist": 10.1,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "W_in_0",
+     "pos": 165.5,
+     "v": 6.38,
+     "dist": 12.4,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 16.8,
+     "v": 2.04,
+     "dist": 13.3,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "S1_2",
+     "pos": 24.8,
+     "v": 12.29,
+     "dist": 14.5,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 18.4,
+     "v": 2.51,
+     "dist": 15.2,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1_3",
+     "pos": 24.4,
+     "v": 9.75,
+     "dist": 16.5,
+     "signals": 1
+    }
+   ]
+  },
+  {
+   "t_s": 159.0,
+   "road": "S1m",
+   "lane": 1,
+   "pos": 5.1,
+   "v": 3.18,
+   "accel_cmd": -0.28,
+   "lane_cmd": 0.0,
+   "teacher_accel": -0.52,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 7.1,
+     "lead_dv": -0.61,
+     "rear_gap": 48.6,
+     "rear_dv": -3.18
+    },
+    "cur": {
+     "lead_gap": 4.8,
+     "lead_dv": -2.11,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 3.3,
+     "rear_dv": 2.73
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 132.6,
+    "turn": -1.0,
+    "turn_m": 132.6,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 11.6,
+     "v": 3.97,
+     "dist": 7.3,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": ":MP_1_2",
+     "pos": 0.3,
+     "v": 12.48,
+     "dist": 10.5,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "W_in_0",
+     "pos": 168.5,
+     "v": 5.91,
+     "dist": 11.0,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 11.5,
+     "v": 9.5,
+     "dist": 11.5,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 17.4,
+     "v": 1.07,
+     "dist": 12.3,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 16.1,
+     "v": 12.78,
+     "dist": 12.8,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1_3",
+     "pos": 28.8,
+     "v": 8.77,
+     "dist": 14.3,
+     "signals": 9
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 19.6,
+     "v": 2.57,
+     "dist": 14.9,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 159.5,
+   "road": "S1m",
+   "lane": 1,
+   "pos": 6.3,
+   "v": 2.42,
+   "accel_cmd": -0.63,
+   "lane_cmd": 1.0,
+   "teacher_accel": -0.78,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 7.2,
+     "lead_dv": 0.21,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 3.6,
+     "lead_dv": -2.32,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": 1.9,
+     "rear_dv": 2.85
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 131.3,
+    "turn": -1.0,
+    "turn_m": 131.3,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 3.1,
+     "v": 12.64,
+     "dist": 7.2,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 13.1,
+     "v": 3.0,
+     "dist": 7.6,
+     "signals": 10
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": ":MP_0_0",
+     "pos": 0.9,
+     "v": 5.28,
+     "dist": 9.5,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 17.4,
+     "v": 0.1,
+     "dist": 11.1,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": ":MP_1_3",
+     "pos": 1.3,
+     "v": 6.61,
+     "dist": 12.9,
+     "signals": 9
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 16.0,
+     "v": 9.0,
+     "dist": 13.6,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 21.0,
+     "v": 2.63,
+     "dist": 15.0,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.14",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 22.5,
+     "v": 12.73,
+     "dist": 17.4,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 160.0,
+   "road": "S1m",
+   "lane": 2,
+   "pos": 6.7,
+   "v": 0.72,
+   "accel_cmd": 0.55,
+   "lane_cmd": -1.0,
+   "teacher_accel": 0.4,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 8.0,
+     "lead_dv": 1.77,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": 3.2,
+     "lead_dv": -0.72,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 1.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 131.0,
+    "turn": -1.0,
+    "turn_m": 131.0,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 9.3,
+     "v": 12.46,
+     "dist": 4.1,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": ":MP_1_2",
+     "pos": 3.5,
+     "v": 4.5,
+     "dist": 7.4,
+     "signals": 9
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": ":MP_0_0",
+     "pos": 3.2,
+     "v": 4.53,
+     "dist": 9.5,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 14.2,
+     "v": 2.03,
+     "dist": 9.8,
+     "signals": 10
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 17.4,
+     "v": 0.0,
+     "dist": 11.2,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 20.2,
+     "v": 8.44,
+     "dist": 15.0,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 22.2,
+     "v": 2.5,
+     "dist": 15.5,
+     "signals": 8
+    }
+   ]
+  },
+  {
+   "t_s": 160.5,
+   "road": "S1m",
+   "lane": 1,
+   "pos": 7.4,
+   "v": 1.55,
+   "accel_cmd": -0.53,
+   "lane_cmd": 0.0,
+   "teacher_accel": -1.0,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 8.5,
+     "lead_dv": 0.98,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 2.5,
+     "lead_dv": -1.55,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 130.2,
+    "turn": -1.0,
+    "turn_m": 130.2,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "S1m_0",
+     "pos": 1.6,
+     "v": 3.71,
+     "dist": 6.7,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 14.7,
+     "v": 1.06,
+     "dist": 7.9,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_3",
+     "pos": 1.3,
+     "v": 2.7,
+     "dist": 8.8,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 17.4,
+     "v": 0.0,
+     "dist": 10.0,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 15.3,
+     "v": 11.98,
+     "dist": 10.1,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 23.5,
+     "v": 2.53,
+     "dist": 16.3,
+     "signals": 0
+    },
+    {
+     "id": "f_NE_in_E_out.13",
+     "type": "car_idm",
+     "lane": "S1m_4",
+     "pos": 24.1,
+     "v": 7.83,
+     "dist": 19.2,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.15",
+     "type": "car_krauss",
+     "lane": "S1_3",
+     "pos": 24.5,
+     "v": 8.29,
+     "dist": 19.8,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 161.0,
+   "road": "S1m",
+   "lane": 1,
+   "pos": 7.5,
+   "v": 0.12,
+   "accel_cmd": 0.91,
+   "lane_cmd": 0.0,
+   "teacher_accel": 1.0,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 2.4,
+     "lead_dv": -0.12,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 130.1,
+    "turn": -1.0,
+    "turn_m": 130.1,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "S1m_0",
+     "pos": 2.9,
+     "v": 2.73,
+     "dist": 5.6,
+     "signals": 10
+    },
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 14.7,
+     "v": 0.09,
+     "dist": 7.9,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_3",
+     "pos": 2.7,
+     "v": 2.7,
+     "dist": 8.0,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_2",
+     "pos": 17.4,
+     "v": 0.0,
+     "dist": 10.4,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 20.7,
+     "v": 10.84,
+     "dist": 14.7,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.15",
+     "type": "car_krauss",
+     "lane": "S1_3",
+     "pos": 29.3,
+     "v": 9.57,
+     "dist": 15.8,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 24.7,
+     "v": 2.5,
+     "dist": 17.5,
+     "signals": 0
+    }
+   ]
+  },
+  {
+   "t_s": 161.5,
+   "road": "S1m",
+   "lane": 1,
+   "pos": 8.2,
+   "v": 1.48,
+   "accel_cmd": 0.95,
+   "lane_cmd": 1.0,
+   "teacher_accel": 1.0,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 10.1,
+     "lead_dv": 0.82,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 0.0,
+    "right_blocked": 1.0,
+    "signal": 1.0,
+    "stopline_m": 129.4,
+    "turn": -1.0,
+    "turn_m": 129.4,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "S1m_0",
+     "pos": 3.8,
+     "v": 1.76,
+     "dist": 5.5,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_3",
+     "pos": 4.0,
+     "v": 2.59,
+     "dist": 7.7,
+     "signals": 8
+    },
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 15.4,
+     "v": 1.3,
+     "dist": 7.8,
+     "signals": 2
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_3",
+     "pos": 17.4,
+     "v": 0.0,
+     "dist": 11.2,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.15",
+     "type": "car_krauss",
+     "lane": "S1m_4",
+     "pos": 0.3,
+     "v": 10.68,
+     "dist": 12.5,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 25.9,
+     "v": 2.3,
+     "dist": 17.9,
+     "signals": 8
+    },
+    {
+     "id": "f_NE_in_E_out.18",
+     "type": "car_krauss",
+     "lane": "S1m_3",
+     "pos": 25.7,
+     "v": 10.07,
+     "dist": 18.6,
+     "signals": 8
+    }
+   ]
+  },
+  {
+   "t_s": 162.0,
+   "road": "S1m",
+   "lane": 2,
+   "pos": 9.7,
+   "v": 2.9,
+   "accel_cmd": 0.49,
+   "lane_cmd": -1.0,
+   "teacher_accel": 0.19,
+   "teacher_lane": 0.0,
+   "obs": {
+    "left": {
+     "lead_gap": 0.7,
+     "lead_dv": -2.02,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "cur": {
+     "lead_gap": 10.0,
+     "lead_dv": -0.3,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "right": {
+     "lead_gap": null,
+     "lead_dv": null,
+     "rear_gap": null,
+     "rear_dv": null
+    },
+    "left_blocked": 1.0,
+    "right_blocked": 0.0,
+    "signal": 1.0,
+    "stopline_m": 128.0,
+    "turn": -1.0,
+    "turn_m": 128.0,
+    "bus": null
+   },
+   "near": [
+    {
+     "id": "f_NE_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_3",
+     "pos": 5.4,
+     "v": 2.85,
+     "dist": 5.4,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_S_out.12",
+     "type": "car_acc",
+     "lane": "S1m_1",
+     "pos": 4.2,
+     "v": 0.79,
+     "dist": 6.4,
+     "signals": 10
+    },
+    {
+     "id": "f_NE_in_E_out.15",
+     "type": "car_krauss",
+     "lane": "S1m_4",
+     "pos": 6.3,
+     "v": 11.97,
+     "dist": 7.3,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_E_out.10",
+     "type": "car_acc",
+     "lane": "S1m_3",
+     "pos": 17.9,
+     "v": 0.89,
+     "dist": 8.8,
+     "signals": 0
+    },
+    {
+     "id": "f_W_in_W_out.2",
+     "type": "car_krauss",
+     "lane": "S1m_0",
+     "pos": 16.6,
+     "v": 2.5,
+     "dist": 9.4,
+     "signals": 2
+    },
+    {
+     "id": "f_W_in_S_out_look.4",
+     "type": "look_krauss",
+     "lane": "S1m_2",
+     "pos": 27.2,
+     "v": 2.61,
+     "dist": 17.5,
+     "signals": 0
+    }
+   ]
+  }
+ ]
+}
