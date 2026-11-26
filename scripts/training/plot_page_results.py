@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plot_strict_results import ROOT, load, counts  # noqa: E402
 
 # (이름, 최종 평가 폴더, 색) — 색은 docs/index.html의 --dim, --blue, 주황
-MODELS = [("BC", "bc", "#6b727c"), ("BC + DAgger (최종)", "bc_dagger", "#5aa2f0"), ("BC + PPO", "bc_ppo", "#e8955a")]
+MODELS = [("BC Only", "bc", "#6b727c"), ("BC + DAgger", "bc_dagger", "#5aa2f0"), ("BC + PPO", "bc_ppo", "#e8955a")]
 BG, INK, INK2, GRID = "#1b1f24", "#e8eaed", "#9aa1ab", "#2a2f36"
 
 if __name__ == "__main__":
