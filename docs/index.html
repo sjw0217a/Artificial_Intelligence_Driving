@@ -59,6 +59,13 @@ h1 .sub{display:block;font-size:.62em;margin-top:10px;color:var(--text)}
 .btn:hover{text-decoration:none;opacity:.9}
 
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0 0 40px}
+.stats.three{grid-template-columns:repeat(3,1fr)}
+.tex [data-tip]{position:relative;cursor:help;border-bottom:1px dotted var(--dim)}
+.tex [data-tip]:hover::after{content:attr(data-tip);position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;white-space:nowrap;
+  background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 8px;z-index:5;
+  font:500 13px/1.4 "Pretendard Variable",Pretendard,sans-serif;color:var(--text)}
+.stat .n.tex{font-size:clamp(17px,1.9vw,21px);font-weight:400;line-height:1.6;padding:6px 0 1px}
+@media (max-width:640px){.stats.three{grid-template-columns:1fr}}
 .stat{background:var(--bg2);padding:22px 20px}
 .stat .n{font-size:clamp(26px,3.4vw,34px);font-weight:700;letter-spacing:-.02em;line-height:1.2}
 .stat .k{color:var(--muted);font-size:14px;margin-top:4px}
@@ -139,12 +146,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 
 .note{border-left:3px solid var(--yellow);padding:4px 0 4px 16px;color:var(--muted);margin:24px 0}
 .note b{color:var(--text)}
-ul.plain{padding-left:20px;color:var(--muted)}
-ul.plain li{margin:6px 0}
-ul.plain b{color:var(--text)}
 
-pre{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;overflow-x:auto;font-size:14px;line-height:1.6;margin:16px 0}
-pre code{background:none;padding:0;font-size:inherit}
 
 footer{padding:56px 0 72px;color:var(--muted);font-size:15px}
 footer .row{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
@@ -160,6 +162,9 @@ footer b{color:var(--text)}
 .training-record td{white-space:normal}
 .observations summary{cursor:pointer;color:var(--muted)}
 .observations > :not(summary){margin-left:22px}
+.observations{font-size:13px}
+.observations h4{font-size:14px}
+.observations table,.observations th{font-size:13px}
 .model-comparison{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px clamp(22px,4vw,48px);align-items:start;padding:clamp(16px,3vw,32px);border:1px solid var(--line);border-radius:22px;background:var(--card)}
 .model-picker{grid-column:1;grid-row:1;min-width:0;border:0;padding:0;margin:0;display:flex;gap:6px;flex-wrap:wrap}
 .model-picker legend{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
@@ -206,6 +211,9 @@ footer b{color:var(--text)}
   .pipe .arrow{transform:rotate(90deg);justify-self:center}
 }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+  onload="document.querySelectorAll('.tex').forEach(e=>katex.render(e.dataset.tex,e,{throwOnError:false,strict:false,trust:c=>c.command==='\\htmlData'}))"></script>
 </head>
 <body>
 
@@ -217,8 +225,7 @@ footer b{color:var(--text)}
       <p class="lead">미디어파사드를 구경하는 사람들로 붐비는 크리스마스의 명동... 자율주행 차량을 타고 퇴근중인 운전자는 안전하고 빠르게 이 도로를 빠져나가야합니다.</p>
       <div class="btns">
         <a class="btn primary" href="https://github.com/sjw0217a/Artificial_Intelligence_Driving"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>Code</a>
-        <!-- Hugging Face 데이터셋 주소 확정 후 href 채우기 -->
-        <a class="btn" href="#"><span aria-hidden="true">🤗</span>Datasets</a>
+        <a class="btn" href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving"><img src="assets/huggingface.svg" alt="" width="20" height="19">Datasets</a>
       </div>
     </div>
   </div>
@@ -484,27 +491,26 @@ footer b{color:var(--text)}
   <div class="wrap">
     <div class="sec-no">05 · 데이터</div>
     <h2>주행 기록을 POMDP transition으로 남긴다</h2>
-    <p class="intro">최종 모델이 평시와 크리스마스 교통에서 주행한 기록을 0.5초 스텝마다 하나의 transition으로 저장합니다. 모델이 실제로 본 <b>관측</b>과 함께, 정책 입력에는 쓰지 않는 <b>시뮬레이터 내부 상태</b>도 같이 남겨 belief·representation 학습에 쓸 수 있게 했습니다.</p>
-    <!-- 수집 규모(transition 수)와 Hugging Face 링크 확정 후 여기에 채우기 -->
-
-    <div class="cards three">
-      <div class="card"><h4>단위</h4><p>(o<sub>t</sub>, a<sub>t</sub>, r<sub>t</sub>, o<sub>t+1</sub>, terminated, truncated, s<sub>t</sub>, s<sub>t+1</sub>). 1 스텝 = 0.5초, 1 Episode는 약 370~400 스텝</p></div>
-      <div class="card"><h4>시나리오</h4><p>평시와 크리스마스를 따로 수집하고, 학습에 쓴 시드(141~173)와 겹치지 않는 시드를 씁니다</p></div>
-      <div class="card"><h4>형식</h4><p>같은 내용을 <code>.jsonl.gz</code>(레코드 단위)와 <code>.npz</code>(배열 단위) 두 가지로 저장합니다</p></div>
+    <div class="stats three" style="margin:0 0 20px">
+      <div class="stat"><div class="n">10,149,487</div><div class="k">transition (0.5초 스텝)</div></div>
+      <div class="stat"><div class="n">26,500</div><div class="k">Episode (평시 13,500 · 크리스마스 13,000)</div></div>
+      <div class="stat"><div class="n tex" data-tex="(\htmlData{tip=관측 (38개)}{o_t},\ \htmlData{tip=행동 (가감속과 차로 변경)}{a_t},\ \htmlData{tip=보상}{r_t},\ \htmlData{tip=다음 관측}{o_{t+1}},\ \htmlData{tip=종료 여부 (terminated / truncated)}{d_t},\ \htmlData{tip=SUMO 내부 상태}{s_t},\ \htmlData{tip=다음 SUMO 내부 상태}{s_{t+1}})">(o<sub>t</sub>, a<sub>t</sub>, r<sub>t</sub>, o<sub>t+1</sub>, d<sub>t</sub>, s<sub>t</sub>, s<sub>t+1</sub>)</div><div class="k">transition 구성</div></div>
     </div>
+    <p style="margin-bottom:28px"><a href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving">Hugging Face에서 데이터셋 보기 ↗</a></p>
 
     <h3>레코드 구성</h3>
+    <p style="color:var(--muted)">모델이 실제로 본 <b>관측</b>과 함께, 정책 입력에는 쓰지 않는 <b>시뮬레이터 내부 상태</b>도 같이 남겨 belief·representation 학습에 쓸 수 있게 했습니다.</p>
     <div class="table">
       <table>
-        <thead><tr><th>키</th><th>내용</th></tr></thead>
+        <thead><tr><th>키</th><th>type</th><th>내용</th></tr></thead>
         <tbody>
-          <tr><td><code>observation</code></td><td class="wrap-cell">모델이 본 관측 38개 (아래 표)</td></tr>
-          <tr><td><code>action_raw</code>, <code>action.*</code></td><td class="wrap-cell">가감속과 차로 변경 출력, 실제로 적용된 차로 변경 (−1, 0, +1)</td></tr>
-          <tr><td><code>reward</code>, <code>terminated</code>, <code>truncated</code></td><td class="wrap-cell">보상과 Episode 종료 여부</td></tr>
-          <tr><td><code>state</code></td><td class="wrap-cell">SUMO 내부 상태. 정책 입력에는 쓰지 않음</td></tr>
-          <tr><td><code>detected_vehicles</code></td><td class="wrap-cell">관측과 같은 시점에 감지한 주변 차량 좌표</td></tr>
-          <tr><td><code>event.*</code></td><td class="wrap-cell">충돌, 도착, 경로 이탈, 신호 위반, Teleport, 차로 변경 전후를 따로 기록</td></tr>
-          <tr><td><code>next_observation</code>, <code>next_state</code></td><td class="wrap-cell">다음 스텝의 관측과 상태 (용량을 줄이려고 Episode 마지막에만 저장하고, 읽을 때 채움)</td></tr>
+          <tr><td><code>observation</code></td><td><code>float[38]</code></td><td class="wrap-cell">모델이 본 관측 38개</td></tr>
+          <tr><td><code>action_raw</code>, <code>action.*</code></td><td><code>float[2]</code>, <code>dict</code></td><td class="wrap-cell">가감속과 차로 변경 출력, 실제로 적용된 차로 변경 (−1, 0, +1)</td></tr>
+          <tr><td><code>reward</code>, <code>terminated</code>, <code>truncated</code></td><td><code>float</code>, <code>bool</code></td><td class="wrap-cell">보상과 Episode 종료 여부</td></tr>
+          <tr><td><code>state</code></td><td><code>dict</code></td><td class="wrap-cell">SUMO 내부 상태</td></tr>
+          <tr><td><code>detected_vehicles</code></td><td><code>list[dict]</code></td><td class="wrap-cell">관측과 같은 시점에 감지한 주변 차량 좌표</td></tr>
+          <tr><td><code>event.*</code></td><td><code>dict</code></td><td class="wrap-cell">충돌, 도착, 경로 이탈, 신호 위반, Teleport, 차로 변경 전후를 따로 기록</td></tr>
+          <tr><td><code>next_observation</code>, <code>next_state</code></td><td><code>float[38]</code>, <code>dict</code></td><td class="wrap-cell">다음 스텝의 관측과 상태</td></tr>
         </tbody>
       </table>
     </div>
@@ -527,59 +533,12 @@ footer b{color:var(--text)}
   </div>
 </section>
 
-<section id="limits">
-  <div class="wrap">
-    <div class="sec-no">06 · 한계</div>
-    <h2>해 봤지만 안 된 것, 밝혀 둘 점</h2>
-
-    <div class="cards three">
-      <div class="card"><h4>처음부터 PPO</h4><p>보상 설계 3가지. 충돌 7~42%, 또는 거의 움직이지 않다가 시간초과.</p></div>
-      <div class="card"><h4>BC 위에 PPO fine-tuning</h4><p>실패 102 → 73 → 32로 나아졌지만 신호 위반이 1% 안팎 남았고, 최종 모델보다 1.4초 느림.</p></div>
-      <div class="card"><h4>왜 DAgger였나</h4><p>신호 위반은 정지선 1 m 앞의 작은 행동 차이라 보상으로는 어느 순간이 문제였는지 찾기 어렵다. DAgger는 그 상태마다 "여기서는 서라"는 정답을 직접 받는다.</p></div>
-    </div>
-
-    <h3>센서 오차에 약하다</h3>
-    <p style="color:var(--muted)">관측이 항상 정확하다고 가정하고 학습했습니다. 앞뒤 차 거리 오차 0.5 m까지는 괜찮았지만, 다음 중 하나만 있어도 충돌이나 신호 위반이 크게 늘었습니다. 실제 차에 쓰려면 오차를 섞어 학습해야 합니다.</p>
-    <ul class="plain">
-      <li>거리 오차 1 m: <b>충돌 58~66%</b></li>
-      <li>측면 레이더 경고 10% 놓침: <b>충돌 16~20%</b></li>
-      <li>0.5초 지연: <b>충돌 13~28%</b></li>
-      <li>정지선 거리 오차 2 m, 신호 10% 오인: <b>신호 위반 13~24%</b></li>
-    </ul>
-    <figure>
-      <div class="frame light"><img src="training/strict/sensor_noise.png" alt="센서 오차 종류와 크기에 따른 충돌률과 신호 위반률 그래프" width="2800" height="1600" loading="lazy"></div>
-    </figure>
-
-    <ul class="plain">
-      <li>최종 모델은 expert보다 낫지 않습니다. 모방학습이라 expert가 사실상 상한입니다.</li>
-      <li>크리스마스와 버스 3배 조건은 학습에도 썼습니다. 학습에 안 쓴 조건(교통량 1.3배)에서도 충돌은 5 / 300입니다.</li>
-      <li>신호 위반은 0.5초 스텝 앞뒤가 모두 적신호일 때 정지선을 넘은 경우만 셉니다 (세 모델에 똑같이 적용).</li>
-    </ul>
-  </div>
-</section>
-
-<section id="run">
-  <div class="wrap">
-    <div class="sec-no">07 · 실행</div>
-    <h2>직접 돌려 보기</h2>
-    <p style="color:var(--muted)">Python 패키지와 SUMO 1.27.1이 필요합니다 (<code>SUMO_HOME</code> 설정).</p>
-<pre><code>pip install -r requirements.txt
-
-python view_road.py --christmas                                  # 도로와 교통만 보기
-python test.py models/strict_bc_dagger.pt --christmas            # 최종 모델 주행 보기
-python eval_section_time.py models/strict_bc_dagger.pt --episodes 100 --christmas --eval-seed 777001</code></pre>
-    <p style="color:var(--muted)">자세한 과정과 원본 결과: <a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving/blob/main/docs/training/학습_과정_기록.md">학습 과정 기록</a> · <a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving/blob/main/docs/training/실험_설정과_결과.md">실험 설정과 결과</a> · <a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving/blob/main/docs/training/모델_설계_정리.md">모델 설계 정리</a></p>
-  </div>
-</section>
-
 <footer>
   <div class="wrap">
-    <div class="sec-no" style="margin-bottom:10px">만든 사람</div>
-    <!-- 팀원 이름 확정 후 채우기 -->
-    <div class="authors"><span>이름 1</span><span>이름 2</span><span>이름 3</span><span>이름 4</span></div>
+    <div class="skku" style="color:var(--text);font-weight:600;margin:0 0 8px"><img src="assets/skku.jpg" alt="" width="22" height="22">성균관대학교</div>
+    <div class="authors"><span>송지원(전자전기공학부)</span><span>김준민(전자전기공학부)</span><span>윤희로(전자전기공학부)</span><span>강권혁(시스템경영학부/전자전기공학부)</span></div>
     <div class="row">
-      <div><b>5조</b> · 자율주행인공지능및제어 · 2026</div>
-      <div><a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving">github.com/sjw0217a/Artificial_Intelligence_Driving</a></div>
+      <div>자율주행인공지능및제어 · 2026</div>
     </div>
   </div>
 </footer>
