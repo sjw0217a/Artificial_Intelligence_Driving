@@ -164,6 +164,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 footer{padding:56px 0 72px;color:var(--muted);font-size:15px}
 footer .row{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
 footer b{color:var(--text)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{display:inline-flex;align-items:center;gap:7px;color:var(--muted)}
+.footer-links a:hover{color:var(--text);text-decoration:none}
 .authors{display:flex;flex-wrap:wrap;gap:8px 28px;font-size:17px;color:var(--text);margin:0 0 6px}
 
 .method-cards{margin:20px 0}
