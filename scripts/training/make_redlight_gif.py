@@ -35,20 +35,23 @@ if __name__ == "__main__":
     p.add_argument("--left-note", default="적신호에 정지선을 넘어 교차로로 들어감")
     p.add_argument("--right-note", default="정지선 앞에서 신호를 기다림")
     p.add_argument("--fps", type=float, default=4.0, help="1스텝 = 0.5초이므로 4는 2배속")
+    p.add_argument("--title", default="신호 ① 앞, 같은 교통 · 크리스마스 장면 25",
+                   help="맨 위 제목. 빈 문자열이면 제목 줄 없이 만든다 (웹페이지처럼 제목이 따로 있을 때)")
     a = p.parse_args()
 
     x0, y0, x1, y1 = (int(v) for v in a.crop.split(","))
     cw, ch = int((x1 - x0) * a.scale), int((y1 - y0) * a.scale)
-    gap, top, side = 40, 150, 30
+    gap, top, side = 40, (150 if a.title else 70), 30
     W, H = side * 2 + cw * 2 + gap, top + ch + 60
     tmp = tempfile.mkdtemp()
     last = [None, None]
     for i, t in enumerate(range(a.start, a.end)):
         im = Image.new("RGB", (W, H), BG)
         d = ImageDraw.Draw(im)
-        d.text((side, 22), "신호 ① 앞, 같은 교통 · 크리스마스 장면 25", font=font(30, True), fill=INK)
-        d.text((side, 64), f"{a.fps / 2:g}배속  ·  빨간 원: 자율주행차  ·  정지선의 빨간 선 = 적신호",
-               font=font(20), fill=INK2)
+        if a.title:
+            d.text((side, 22), a.title, font=font(30, True), fill=INK)
+            d.text((side, 64), f"{a.fps / 2:g}배속  ·  빨간 원: 자율주행차  ·  정지선의 빨간 선 = 적신호",
+                   font=font(20), fill=INK2)
         for k, (src, label, note, color) in enumerate(((a.left, a.left_label, a.left_note, BAD),
                                                        (a.right, a.right_label, a.right_note, GOOD))):
             f = os.path.join(src, f"{t:04d}.png")
@@ -56,7 +59,7 @@ if __name__ == "__main__":
             fr = Image.open(last[k]).convert("RGB").crop((x0, y0, x1, y1)).resize((cw, ch), Image.LANCZOS)
             x = side + k * (cw + gap)
             im.paste(fr, (x, top))
-            d.text((x + cw // 2, 112), label, font=font(26, True), fill=color, anchor="mm")
+            d.text((x + cw // 2, top - 38), label, font=font(26, True), fill=color, anchor="mm")
             d.text((x + cw // 2, top + ch + 30), note, font=font(22), fill=INK2, anchor="mm")
         im.save(os.path.join(tmp, f"{i:04d}.png"))
     for j in range(int(a.fps * 2)):   # 마지막 화면 2초 정지
