@@ -1,6 +1,8 @@
 # Autonomous Driving on Sogong-ro in Myeongdong (SUMO)
 
-**[Project page](https://sjw0217a.github.io/Artificial_Intelligence_Driving/)** · [Local HTML](docs/index.html)
+> ### [Project page →](https://sjw0217a.github.io/Artificial_Intelligence_Driving/)
+> Results, side-by-side driving comparisons, and the dataset at a glance.
+> [한국어](https://sjw0217a.github.io/Artificial_Intelligence_Driving/) · [English](https://sjw0217a.github.io/Artificial_Intelligence_Driving/en.html)
 
 ## Installation
 
