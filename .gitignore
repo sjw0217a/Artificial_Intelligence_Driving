@@ -21,3 +21,9 @@ AGENTS.md
 CLAUDE.md
 .opencode/
 HANDOFF.md
+
+# 제출본에서 제외한 다른 도로 설계 자료와 이전 버스 비교 영상
+/docs/NOHYEONG_SCENARIOS.md
+/docs/assets/nohyeong_nodes/
+/docs/training/strict/video/bus_compare_strict.gif
+/docs/training/strict/video/bus_compare_strict.mp4
