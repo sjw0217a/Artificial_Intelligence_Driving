@@ -202,19 +202,19 @@
         <button role="tab" id="tab-ppo" aria-controls="run-ppo" aria-selected="false" tabindex="-1">BC + PPO</button>
       </div>
       <article class="model-run" role="tabpanel" aria-labelledby="tab-bc" id="run-bc">
-        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC Only driving in Christmas scene 25"><source src="assets/scene25-bc.mp4" type="video/mp4"></video>
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC Only enters on red and crashes in Christmas scene 172"><source src="assets/scene172-bc.mp4" type="video/mp4"></video>
         <div class="run-stats"><p>BC alone had the most red-light violations and route departures of the three models.</p>
           <dl><div><dt>Collisions</dt><dd>38 (3.2%)</dd></div><div><dt>Red-light violations</dt><dd>125</dd></div><div><dt>Route departures</dt><dd>35</dd></div><div><dt>Timeouts</dt><dd><strong>0</strong></dd></div><div><dt>Failed episodes</dt><dd>155</dd></div><div><dt>Mean section time</dt><dd>21.48 s</dd></div></dl>
         </div>
       </article>
       <article class="model-run" role="tabpanel" aria-labelledby="tab-dagger" id="run-dagger" hidden>
-        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + DAgger driving in Christmas scene 25"><source src="assets/scene25-dagger.mp4" type="video/mp4"></video>
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + DAgger waits for green and clears the busy stretch in Christmas scene 172"><source src="assets/scene172-dagger.mp4" type="video/mp4"></video>
         <div class="run-stats"><p>The final model had the lowest collision rate and completed evaluation with no red-light violations or route departures.</p>
           <dl><div><dt>Collisions</dt><dd><strong>19 (1.6%)</strong></dd></div><div><dt>Red-light violations</dt><dd><strong>0</strong></dd></div><div><dt>Route departures</dt><dd><strong>0</strong></dd></div><div><dt>Timeouts</dt><dd>1</dd></div><div><dt>Failed episodes</dt><dd><strong>20</strong></dd></div><div><dt>Mean section time</dt><dd><strong>21.19 s</strong></dd></div></dl>
         </div>
       </article>
       <article class="model-run" role="tabpanel" aria-labelledby="tab-ppo" id="run-ppo" hidden>
-        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + PPO driving in Christmas scene 25"><source src="assets/scene25-ppo.mp4" type="video/mp4"></video>
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + PPO runs the red light in Christmas scene 172"><source src="assets/scene172-ppo.mp4" type="video/mp4"></video>
         <div class="run-stats"><p>PPO had more collisions and red-light violations than DAgger. Its mean section time of 22.71 s was the longest of the three.</p>
           <dl><div><dt>Collisions</dt><dd>25 (2.1%)</dd></div><div><dt>Red-light violations</dt><dd>10</dd></div><div><dt>Route departures</dt><dd><strong>0</strong></dd></div><div><dt>Timeouts</dt><dd><strong>0</strong></dd></div><div><dt>Failed episodes</dt><dd>33</dd></div><div><dt>Mean section time</dt><dd>22.71 s</dd></div></dl>
         </div>
