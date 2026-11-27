@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Myeongdong Christmas</title>
+<meta name="description" content="Learning to change lanes in holiday traffic on Sogong-ro in Seoul, using SUMO, behavior cloning and DAgger.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400..750&amp;display=swap">
+<link rel="stylesheet" href="assets/project.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+  onload="document.querySelectorAll('.tex').forEach(e=>katex.render(e.dataset.tex,e,{throwOnError:false,strict:false,trust:c=>c.command==='\\htmlData'}))"></script>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <nav class="language-switch" aria-label="Language">
+    <a href="index.html" hreflang="ko" lang="ko" aria-label="한국어"><span aria-hidden="true">🇰🇷</span> KOR</a>
+    <a href="en.html" hreflang="en" lang="en" aria-label="English" aria-current="page"><span aria-hidden="true">🇺🇸</span> ENG</a>
+  </nav>
+  <div class="wrap">
+    <div class="head">
+      <h1><span class="xmas">Myeongdong <span>Christmas</span></span><span class="sub">Learning to make a right turn in Seoul’s holiday traffic</span></h1>
+      <p class="team">Jiwon Song<i>·</i>Junmin Kim<i>·</i>Huiro Yun<i>·</i>Gwonhyeok Kang<i>·</i><a class="skku" href="https://www.skku.edu" target="_blank" rel="noopener"><img src="assets/skku.jpg" alt="" width="22" height="22">Sungkyunkwan University</a></p>
+      <p class="lead"><span class="lead-copy">On a Christmas evening in Seoul, drivers slow down to watch the lights on the Shinsegae department store. For a passenger heading home, one short stretch of road poses a surprisingly difficult problem: can the car get across traffic in time to turn right?</span></p>
+      <div class="btns">
+        <a class="btn primary" href="https://github.com/sjw0217a/Artificial_Intelligence_Driving"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>Code</a>
+        <a class="btn" href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving"><img src="assets/huggingface.svg" alt="" width="20" height="19">Datasets</a>
+        <a class="btn" href="assets/final-presentation.pdf" target="_blank" rel="noopener"><img src="assets/slides-checked.png" width="20" height="20" alt="" style="filter:invert(1)">Slides</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="section-nav" aria-label="Page sections">
+  <div class="wrap">
+    <a href="#abstract">Overview</a>
+    <a href="#road">Road</a>
+    <a href="#scenario">Scenarios</a>
+    <a href="#method">Training</a>
+    <a href="#results">Results</a>
+    <a href="#data">Dataset</a>
+    <a href="#limits">Limitations</a>
+  </div>
+</nav>
+
+
+<section id="abstract">
+  <div class="wrap">
+    <div class="sec-no">Overview</div>
+    <div class="stats">
+      <div class="stat"><div class="n">1.6%</div><div class="k">Collision rate</div></div>
+      <div class="stat"><div class="n">0</div><div class="k">Red-light violations</div></div>
+      <div class="stat"><div class="n">0</div><div class="k">Route departures</div></div>
+      <div class="stat"><div class="n">21.2 s</div><div class="k">Mean time through the weaving section</div></div>
+    </div>
+    <h2>Can a car learn to make the turn in Christmas traffic?</h2>
+    <div class="summary-layout">
+      <div>
+        <p class="intro">We recreated Sogong-ro in SUMO, from the Bank of Korea to Hoehyeon Intersection in central Seoul. We trained a driving policy on the route and recorded its journeys. In our Christmas scenario, extra traffic arrives to see the holiday display, and some drivers slow down outside the store. To reach the right-turn lane, the car must adjust its speed to nearby traffic and decide whether to wait behind a stopped bus or pass it.</p>
+        <p class="intro">We began with <b>behavior cloning (BC)</b> to learn from a rule-based driver. With <b>Dataset Aggregation (DAgger)</b>, the car then drove on its own and received expert labels for the situations it encountered. Across 1,200 evaluation episodes in four traffic conditions, the final policy had <b>a 1.6% collision rate, with no red-light violations or route departures.</b></p>
+      </div>
+      <img src="assets/myeongdong-christmas.jpg" width="1200" height="842" loading="lazy" alt="Christmas lights on the Shinsegae store and the surrounding streets at night">
+    </div>
+  </div>
+</section>
+
+<section id="road">
+  <div class="wrap">
+    <div class="sec-no">01 · Road</div>
+    <h2>From the Bank of Korea to Hoehyeon Intersection</h2>
+    <p class="intro">The car starts in the far-left lane near the Bank of Korea. About 187 m later, it needs to turn right at Hoehyeon Intersection. To get there it must reach the <b>far-right lane</b>, which also serves a bus stop. If a bus is stopped, the car can wait or pass it and merge back. Most lane changes and merges happen in the roughly 150 m after the first signal. We call this the <b>weaving section</b> and measure how long each policy takes to clear it.</p>
+
+    <div class="pair">
+      <figure>
+        <div class="frame"><img src="assets/en/satellite_annotated.jpg" alt="Satellite map of the Bank of Korea junction, the lane changes and the bus stop on the way to Hoehyeon Intersection" width="1822" height="1816" loading="lazy"></div>
+        <figcaption>Satellite view of the 187 m route. Signal ① marks the Bank of Korea junction and ③ marks Hoehyeon Intersection. The route passes the department store display and the curbside bus stop. Imagery from Naver Map.</figcaption>
+      </figure>
+      <figure>
+        <div class="frame"><img src="assets/en/sumo_road.gif" alt="SUMO traffic on the modeled stretch of Sogong-ro" width="640" height="640" loading="lazy"></div>
+        <figcaption>Traffic moving through the same road network in SUMO.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Four decisions on one stretch of road</h3>
+    <div class="cards two">
+      <div class="card"><h4 class="tag s1">Weaving traffic</h4><p>Drivers cross each other’s paths to reach different exits. Which gap will get the car into the right-turn lane?</p></div>
+      <div class="card"><h4 class="tag s1m">Merge and lane drop</h4><p>A side road joins from the right, then five lanes narrow to four. Should the car merge ahead or let another driver in first?</p></div>
+      <div class="card"><h4 class="tag s2">A bus at the stop</h4><p>A bus is stopped in the right-turn lane. Is there room to pass and merge back before the turn?</p></div>
+      <div class="card christmas"><h4 class="tag s1b">Holiday slowdown</h4><p>Traffic rises to 1.5 times its usual volume, and cars slow down outside the light display. Should the car follow or change lanes?</p></div>
+    </div>
+
+  </div>
+</section>
+
+<section id="scenario">
+  <div class="wrap">
+    <div class="scenario-heading">
+      <div class="sec-no">02 · Scenarios</div>
+      <h2>Everyday traffic and the Christmas rush</h2>
+      <p class="intro">Each winter, a light display covers the façade of the main Shinsegae store. Some drivers slow down to watch. We modeled that change in traffic and used both everyday and holiday conditions for training and evaluation.</p>
+    </div>
+
+    <div class="compare">
+      <div class="card">
+        <h4>Everyday traffic</h4>
+        <ul>
+          <li>A mix of driving styles, from assertive drivers to those more likely to yield</li>
+          <li>Three real bus routes (143, 406 and 705), with about 19 buses per hour in total</li>
+          <li>A 170-second cycle at the first signal, based on Seoul’s historical traffic signal records</li>
+        </ul>
+      </div>
+      <div class="scenario-slot">
+        <div class="card x">
+          <div class="scenario-detail">
+            <h4>Christmas</h4>
+            <ul>
+              <li>Passenger-car traffic increases to <strong>1.5 times</strong> its usual volume. Of those cars, <strong>30%</strong> slow to <strong>about 11 km/h</strong> as they pass the store to watch the display.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="sec-no">03 · Training</div>
+    <h2>Learning from a driver’s example</h2>
+    <p>Behavior cloning (BC) treats driving as a supervised learning problem. Given what the car can observe, the network learns to accelerate, brake and change lanes as the expert would.</p>
+    <div class="cards two method-cards bc-cards">
+      <div class="card"><h4>Data</h4><p>A rule-based driver completed 1,000 episodes in everyday and Christmas traffic, generating roughly 400,000 <b>(observation, action)</b> pairs.</p></div>
+      <div class="card"><h4>Model</h4>
+        <svg class="bc-diagram" viewBox="0 0 370 105" role="img" aria-labelledby="bc-diagram-title">
+          <title id="bc-diagram-title">The 38 inputs pass through two shared ReLU layers of 256 units each, then branch into acceleration, lane choice and value outputs.</title>
+          <g fill="none" stroke="#586c80" stroke-width="0.9">
+            <path d="M28 31L105 22 M28 31L105 40 M28 31L105 58 M28 31L105 76"/>
+            <path d="M28 49L105 22 M28 49L105 40 M28 49L105 58 M28 49L105 76"/>
+            <path d="M28 67L105 22 M28 67L105 40 M28 67L105 58 M28 67L105 76"/>
+            <path d="M105 22L180 22 M105 22L180 40 M105 22L180 58 M105 22L180 76"/>
+            <path d="M105 40L180 22 M105 40L180 40 M105 40L180 58 M105 40L180 76"/>
+            <path d="M105 58L180 22 M105 58L180 40 M105 58L180 58 M105 58L180 76"/>
+            <path d="M105 76L180 22 M105 76L180 40 M105 76L180 58 M105 76L180 76"/>
+            <path d="M180 22L247 25 M180 22L247 49 M180 22L247 73"/>
+            <path d="M180 40L247 25 M180 40L247 49 M180 40L247 73"/>
+            <path d="M180 58L247 25 M180 58L247 49 M180 58L247 73"/>
+            <path d="M180 76L247 25 M180 76L247 49 M180 76L247 73"/>
+          </g>
+          <g fill="#9caeba"><circle cx="28" cy="31" r="4.2"/><circle cx="28" cy="49" r="4.2"/><circle cx="28" cy="67" r="4.2"/></g>
+          <g fill="#90bde9"><circle cx="105" cy="22" r="4.2"/><circle cx="105" cy="40" r="4.2"/><circle cx="105" cy="58" r="4.2"/><circle cx="105" cy="76" r="4.2"/></g>
+          <g fill="#90bde9"><circle cx="180" cy="22" r="4.2"/><circle cx="180" cy="40" r="4.2"/><circle cx="180" cy="58" r="4.2"/><circle cx="180" cy="76" r="4.2"/></g>
+          <g fill="#edbd73"><circle cx="247" cy="25" r="4.2"/><circle cx="247" cy="49" r="4.2"/><circle cx="247" cy="73" r="4.2"/></g>
+          <g fill="#d8e0e7" font-size="13">
+            <text x="260" y="30">Acceleration · 1</text><text x="260" y="54">Lane choice · 3</text><text x="260" y="78">Value V(s) · 1</text>
+            <g text-anchor="middle"><text x="28" y="98">38 inputs</text><text x="105" y="98">ReLU 256</text><text x="180" y="98">ReLU 256</text></g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <h3 id="observations">What the car can observe</h3>
+    <p style="color:var(--muted)">The policy receives only information a driver or an onboard sensor could obtain.</p>
+    <div class="table">
+      <table>
+        <thead><tr><th>Indices</th><th>Signal</th><th>What it tells the car</th></tr></thead>
+        <tbody>
+          <tr><td>[0] ~ [30]</td><td class="wrap-cell">Speed, gaps and relative speeds ahead and behind across five lanes, lane connectivity and density</td><td class="wrap-cell">The base observation describes nearby traffic and the road ahead.</td></tr>
+          <tr><td>[31], [32]</td><td class="wrap-cell">Next signal phase and distance to the stop line</td><td class="wrap-cell">The policy must decide when to stop for a light.</td></tr>
+          <tr><td>[33], [34]</td><td class="wrap-cell">Left and right side radar</td><td class="wrap-cell">Detects cars within roughly 2.5 m alongside the vehicle, a blind spot in the base observation.</td></tr>
+          <tr><td>[35], [36]</td><td class="wrap-cell">Direction of the next turn and distance to it</td><td class="wrap-cell">Provides map-level navigation cues.</td></tr>
+          <tr><td>[37]</td><td class="wrap-cell">Camera flag for a bus stopped at the bus stop within 80 m ahead</td><td class="wrap-cell">Distinguishes a bus making a 20-second stop from other traffic.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <details class="observations"><summary>Training configuration</summary>
+      <div class="table"><table class="training-record" aria-label="Behavior cloning training configuration">
+        <thead><tr><th scope="col">Parameter</th><th scope="col">Value</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Optimizer</th><td>Adam</td></tr>
+          <tr><th scope="row">Epochs</th><td>30</td></tr>
+          <tr><th scope="row">Learning rate</th><td>0.0003</td></tr>
+          <tr><th scope="row">Batch size</th><td>256</td></tr>
+          <tr><th scope="row">Discount factor</th><td>0.99</td></tr>
+          <tr><th scope="row">Training seed</th><td>0</td></tr>
+          <tr><th scope="row">Lane-change weight</th><td>Lane changes account for only 0.66% of actions, so their examples receive a higher weight.</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+
+    <h2 style="margin-top:64px">Recovering when the car leaves the expert’s path with <a href="https://arxiv.org/abs/1011.0686" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:6px">DAgger</a></h2>
+    <p>A little extra acceleration near a stop line puts the car in a position the expert never demonstrated. Starting with the BC policy, DAgger lets the car visit those unfamiliar states and asks the expert what it would do there.</p>
+    <div class="cards two method-cards">
+      <div class="card"><h4>Data</h4><p>We label the states the learner visits with the rule-based driver’s actions and add those observation–action pairs to the original demonstrations.</p></div>
+      <div class="card"><h4>Model</h4><p>The architecture stays the same: 38 inputs feed the network that predicts acceleration and lane choice. After each round, we retrain it on all examples collected so far.</p></div>
+    </div>
+
+    <h3 class="comparison-title">Comparison with <strong>BC Only</strong> and <strong>BC + PPO</strong></h3>
+    <p>We compared two ways to handle states outside the training distribution. Starting from BC, DAgger adds expert corrections, while Proximal Policy Optimization (PPO) fine-tunes the policy using rewards from its own drives. We selected <b>BC + DAgger</b> because it had the fewest failed validation episodes.</p>
+    <div class="model-comparison">
+      <div class="tabs model-picker" role="tablist" aria-label="Select a driving policy">
+        <button role="tab" id="tab-bc" aria-controls="run-bc" aria-selected="true">BC Only</button>
+        <button role="tab" id="tab-dagger" aria-controls="run-dagger" aria-selected="false" tabindex="-1">BC + DAgger</button>
+        <button role="tab" id="tab-ppo" aria-controls="run-ppo" aria-selected="false" tabindex="-1">BC + PPO</button>
+      </div>
+      <article class="model-run" role="tabpanel" aria-labelledby="tab-bc" id="run-bc">
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC Only enters on red and crashes in Christmas scene 172"><source src="assets/scene172-bc.mp4" type="video/mp4"></video>
+        <div class="run-stats"><p>BC alone had the most red-light violations and route departures of the three models.</p>
+          <dl><div><dt>Collisions</dt><dd>38 (3.2%)</dd></div><div><dt>Red-light violations</dt><dd>125</dd></div><div><dt>Route departures</dt><dd>35</dd></div><div><dt>Timeouts</dt><dd><strong>0</strong></dd></div><div><dt>Failed episodes</dt><dd>155</dd></div><div><dt>Mean section time</dt><dd>21.48 s</dd></div></dl>
+        </div>
+      </article>
+      <article class="model-run" role="tabpanel" aria-labelledby="tab-dagger" id="run-dagger" hidden>
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + DAgger waits for green and clears the busy stretch in Christmas scene 172"><source src="assets/scene172-dagger.mp4" type="video/mp4"></video>
+        <div class="run-stats"><p>The final model had the lowest collision rate and completed evaluation with no red-light violations or route departures.</p>
+          <dl><div><dt>Collisions</dt><dd><strong>19 (1.6%)</strong></dd></div><div><dt>Red-light violations</dt><dd><strong>0</strong></dd></div><div><dt>Route departures</dt><dd><strong>0</strong></dd></div><div><dt>Timeouts</dt><dd>1</dd></div><div><dt>Failed episodes</dt><dd><strong>20</strong></dd></div><div><dt>Mean section time</dt><dd><strong>21.19 s</strong></dd></div></dl>
+        </div>
+      </article>
+      <article class="model-run" role="tabpanel" aria-labelledby="tab-ppo" id="run-ppo" hidden>
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + PPO runs the red light in Christmas scene 172"><source src="assets/scene172-ppo.mp4" type="video/mp4"></video>
+        <div class="run-stats"><p>PPO had more collisions and red-light violations than DAgger. Its mean section time of 22.71 s was the longest of the three.</p>
+          <dl><div><dt>Collisions</dt><dd>25 (2.1%)</dd></div><div><dt>Red-light violations</dt><dd>10</dd></div><div><dt>Route departures</dt><dd><strong>0</strong></dd></div><div><dt>Timeouts</dt><dd><strong>0</strong></dd></div><div><dt>Failed episodes</dt><dd>33</dd></div><div><dt>Mean section time</dt><dd>22.71 s</dd></div></dl>
+        </div>
+      </article>
+    </div>
+    <details class="observations"><summary>DAgger and PPO training configurations</summary>
+      <h4>DAgger</h4>
+      <p>In each of three rounds the learner drove 400 episodes without handing control to the expert (β = 0). The expert labeled each observation. We then trained a fresh network on the original demonstrations and all examples gathered to date.</p>
+      <h4>BC + PPO · Third configuration</h4>
+      <div class="table"><table class="training-record" aria-label="Third BC + PPO training configuration">
+        <thead><tr><th scope="col">Parameter</th><th scope="col">Value</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Initialization · Training steps</th><td>Initialized from BC and fine-tuned for 400,000 steps</td></tr>
+          <tr><th scope="row">Traffic</th><td>Mixed everyday and Christmas traffic with triple bus frequency</td></tr>
+          <tr><th scope="row">Learning rate</th><td>0.00005</td></tr>
+          <tr><th scope="row">Rollout length</th><td>2,048 steps</td></tr>
+          <tr><th scope="row">Update epochs · Minibatch size</th><td>10 · 64</td></tr>
+          <tr><th scope="row">Discount factor γ · GAE λ</th><td>0.99 · 0.95</td></tr>
+          <tr><th scope="row">Clip range ε</th><td>0.2</td></tr>
+          <tr><th scope="row">Value function V(s) · Critic</th><td><math aria-label="Expected cumulative reward starting in state s under policy pi, discounted by 0.99 per step">
+                <msup><mi>V</mi><mi>π</mi></msup><mo>(</mo><mi>s</mi><mo>)</mo><mo>=</mo>
+                <msub><mi>𝔼</mi><mi>π</mi></msub><mo>[</mo>
+                <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>∞</mi></munderover>
+                <msup><mn>0.99</mn><mi>k</mi></msup><msub><mi>R</mi><mrow><mi>t</mi><mo>+</mo><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub>
+                <mo>∣</mo><msub><mi>S</mi><mi>t</mi></msub><mo>=</mo><mi>s</mi><mo>]</mo>
+              </math></td></tr>
+          <tr><th scope="row">Value loss coefficient</th><td>0.5</td></tr>
+          <tr><th scope="row">Entropy coefficient (overall · lane choice)</th><td>0 · 0.01</td></tr>
+          <tr><th scope="row">Max gradient norm</th><td>0.5</td></tr>
+          <tr><th scope="row">Initial log σ (acceleration)</th><td>−1.5</td></tr>
+          <tr><th scope="row">BC regularization coefficient</th><td>0.1, using the rule-based driver’s demonstrations</td></tr>
+          <tr><th scope="row">Critic warmup</th><td>Update only the value head for the first five updates</td></tr>
+          <tr><th scope="row">Red-light violation handling</th><td>End the episode immediately during training. During evaluation, continue driving and count violations.</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <div class="sec-no">04 · Results</div>
+    <h2>How the two policies handle nearby traffic</h2>
+    <div class="tabs" role="tablist" aria-label="Compare driving scenarios">
+      <button role="tab" id="tab-weave" aria-controls="panel-weave" aria-selected="true">Weaving traffic</button>
+      <button role="tab" id="tab-merge" aria-controls="panel-merge" aria-selected="false" tabindex="-1">Merge and lane drop</button>
+      <button role="tab" id="tab-bus" aria-controls="panel-bus" aria-selected="false" tabindex="-1">A bus at the stop</button>
+      <button role="tab" id="tab-xmas" aria-controls="panel-xmas" aria-selected="false" tabindex="-1">Holiday slowdown</button>
+    </div>
+    <div role="tabpanel" id="panel-weave" aria-labelledby="tab-weave">
+      <figure>
+        <div class="frame"><img src="assets/en/weave.gif" alt="BC collides before the merge. DAgger delays its move to the right." width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">Both cars crossed the signal at the same time, with traffic about to join from the right. BC moved all the way to the curb lane before the merge and collided with an incoming car. DAgger moved over one lane, then continued right after the road widened. It cleared the weaving section in 14.5 s.</p>
+    </div>
+    <div role="tabpanel" id="panel-merge" aria-labelledby="tab-merge" hidden>
+      <figure>
+        <div class="frame"><img src="assets/en/merge.gif" alt="BC stops at the lane end and collides. DAgger merges earlier." width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">Just beyond the merge, the two rightmost lanes become one. Both cars entered the lane that ends. BC reached its end, waited about 20 s for a gap and collided. DAgger found a gap before the lane ended and cleared the section in 14.5 s.</p>
+    </div>
+    <div role="tabpanel" id="panel-bus" aria-labelledby="tab-bus" hidden>
+      <figure>
+        <div class="frame"><img src="assets/en/bus.gif" alt="BC waits behind the bus. DAgger passes it and returns to the turn lane." width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">A stopped bus blocked the right-turn lane. BC waited behind it and took 41.0 s to clear the section. DAgger passed one lane to the left, then returned to the turn lane where the road widens before Hoehyeon Intersection. It took 31.5 s.</p>
+    </div>
+    <div role="tabpanel" id="panel-xmas" aria-labelledby="tab-xmas" hidden>
+      <figure>
+        <div class="frame"><img src="assets/en/xmas.gif" alt="BC follows the sightseers. DAgger moves into the turn lane earlier." width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">In Christmas traffic, 30% of passenger cars slow to 11 km/h outside the display. In this episode BC stayed in a middle lane behind sightseers and took 40.0 s to clear the section. DAgger moved into the right-turn lane earlier and cleared it in 15.0 s.</p>
+    </div>
+
+    <h2 style="margin-top:56px">Collision rates under heavier traffic</h2>
+    <div class="table">
+      <table>
+        <thead><tr><th>Condition</th><th class="num">Collisions</th><th class="num">Red-light violations</th><th class="num">Route departures</th><th class="num">weaving section</th></tr></thead>
+        <tbody>
+          <tr><td>Everyday traffic</td><td class="num">0 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">14.9 s</td></tr>
+          <tr><td>Christmas</td><td class="num">2 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">21.9 s</td></tr>
+          <tr><td>Christmas with 1.3× traffic (held out from training)</td><td class="num">5 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">25.4 s</td></tr>
+          <tr><td>Christmas with 3× bus frequency</td><td class="num">12 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">22.7 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure>
+      <div class="frame"><img src="assets/en/results.png" alt="Collision, red-light violation and route departure or timeout rates for three models over 1,200 episodes" width="2000" height="840" loading="lazy"></div>
+    </figure>
+  </div>
+</section>
+
+<section id="data">
+  <div class="wrap">
+    <div class="sec-no">05 · Dataset</div>
+    <h2>A driving dataset for partially observable decision-making</h2>
+    <div class="stats three" style="margin:0 0 20px">
+      <div class="stat"><div class="n">10,149,487</div><div class="k">transitions at 0.5-second intervals</div></div>
+      <div class="stat"><div class="n">26,500</div><div class="k">episodes (13,500 everyday · 13,000 Christmas)</div></div>
+      <div class="stat"><div class="n tex" data-tex="(\htmlData{tip=Observation (38 values)}{o_t},\ \htmlData{tip=Action (acceleration and lane change)}{a_t},\ \htmlData{tip=Reward}{r_t},\ \htmlData{tip=Next observation}{o_{t+1}},\ \htmlData{tip=Episode ended (terminated or truncated)}{d_t},\ \htmlData{tip=SUMO state}{s_t},\ \htmlData{tip=Next SUMO state}{s_{t+1}})">(o<sub>t</sub>, a<sub>t</sub>, r<sub>t</sub>, o<sub>t+1</sub>, d<sub>t</sub>, s<sub>t</sub>, s<sub>t+1</sub>)</div><div class="k">fields in a transition</div></div>
+    </div>
+    <p style="margin-bottom:28px"><a href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving">Explore the dataset on Hugging Face ↗</a></p>
+
+    <h3>What each record contains</h3>
+    <p style="color:var(--muted)">Each record pairs the policy’s <b>observation</b> with the underlying <b>simulator state</b>. That extra state information is available for learning beliefs or representations, while the driving policy sees only the observation.</p>
+    <div class="table">
+      <table>
+        <thead><tr><th>Key</th><th>Type</th><th>Signal</th></tr></thead>
+        <tbody>
+          <tr><td><code>observation</code></td><td><code>float[38]</code></td><td class="wrap-cell">The 38 inputs available to the policy (<a href="#observations">see the observation table</a>)</td></tr>
+          <tr><td><code>action_raw</code>, <code>action.*</code></td><td><code>float[2]</code>, <code>dict</code></td><td class="wrap-cell">Acceleration and lane-change outputs, plus the lane change actually applied (−1, 0, +1)</td></tr>
+          <tr><td><code>reward</code>, <code>terminated</code>, <code>truncated</code></td><td><code>float</code>, <code>bool</code></td><td class="wrap-cell">Reward and episode termination or truncation flags</td></tr>
+          <tr><td><code>state</code></td><td><code>dict</code></td><td class="wrap-cell">Internal SUMO state</td></tr>
+          <tr><td><code>detected_vehicles</code></td><td><code>list[dict]</code></td><td class="wrap-cell">Positions of nearby vehicles detected at the time of observation</td></tr>
+          <tr><td><code>event.*</code></td><td><code>dict</code></td><td class="wrap-cell">Separate fields for collisions, arrivals, route departures, red-light violations, teleports and lane changes (before and after)</td></tr>
+          <tr><td><code>next_observation</code>, <code>next_state</code></td><td><code>float[38]</code>, <code>dict</code></td><td class="wrap-cell">Observation and state at the next step</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="sec-no">06 · Limitations</div>
+    <h2>Where the policy falls short</h2>
+
+    <h3>Small sensor errors can disrupt a drive</h3>
+    <p style="color:var(--muted)">The final policy learned from clean observations. When we introduced measurement errors at evaluation time, even a 1 m error in the gap to a nearby vehicle or a delay of 0.5 s sharply increased the failure rate. Training with noisy observations is a necessary step toward using this policy with real sensors.</p>
+    <figure>
+      <div class="frame"><img src="assets/en/sensor_noise.png" alt="Failure rates: clean observations 3%, vehicle gap error of 0.5 m 2%, gap error of 1 m 62%, missed side alerts 18%, 0.5 s delay 20%, stop-line error 22%, signal misclassification 22%." width="2000" height="840" loading="lazy"></div>
+    </figure>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="skku" href="https://www.skku.edu" target="_blank" rel="noopener" style="color:var(--text);font-weight:600;margin:0 0 8px"><img src="assets/skku.jpg" alt="" width="22" height="22">Sungkyunkwan University</a>
+    <div class="authors"><span>Jiwon Song (Electrical and Computer Engineering)</span><span>Junmin Kim (Electrical and Computer Engineering)</span><span>Huiro Yun (Electrical and Computer Engineering)</span><span>Gwonhyeok Kang (Systems Management Engineering / Electrical and Computer Engineering)</span></div>
+    <div class="row">
+      <div>Artificial Intelligence and Control for Autonomous Driving · 2026</div>
+      <div class="footer-links">
+        <a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>GitHub</a>
+        <a href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving"><img src="assets/huggingface.svg" alt="" width="17" height="16">Hugging Face</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+
+<script src="assets/project.js"></script>
+</body>
+</html>

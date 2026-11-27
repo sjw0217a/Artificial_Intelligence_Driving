@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소공로 자율주행</title>
+<meta name="description" content="명동 소공로 187 m, 크리스마스 혼잡 속 자율주행차의 차로 변경 학습 (SUMO, BC + DAgger)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400..750&amp;display=swap">
+<link rel="stylesheet" href="assets/project.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+  onload="document.querySelectorAll('.tex').forEach(e=>katex.render(e.dataset.tex,e,{throwOnError:false,strict:false,trust:c=>c.command==='\\htmlData'}))"></script>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <nav class="language-switch" aria-label="언어 선택">
+    <a href="index.html" hreflang="ko" lang="ko" aria-label="한국어" aria-current="page"><span aria-hidden="true">🇰🇷</span> KOR</a>
+    <a href="en.html" hreflang="en" lang="en" aria-label="English"><span aria-hidden="true">🇺🇸</span> ENG</a>
+  </nav>
+  <div class="wrap">
+    <div class="head">
+      <h1><span class="xmas">크리스마스의 <span>명동</span></span><span class="sub">끼어들고, 기다리고, 비켜 가는 자율주행차</span></h1>
+      <p class="team">
+        <a href="https://github.com/sjw0217a">송지원</a><i>·</i>
+        <a href="https://github.com/junminkim1111">김준민</a><i>·</i>
+        <a href="https://github.com/heerohyoon">윤희로</a><i>·</i>
+        <a href="https://github.com/Gwonyeok">강권혁</a><i>·</i>
+        <a class="skku" href="https://www.skku.edu" target="_blank" rel="noopener"><img src="assets/skku.jpg" alt="" width="22" height="22">성균관대학교</a>
+      </p>
+      <p class="lead"><span class="lead-copy">미디어파사드를 구경하는 사람들로 붐비는 크리스마스의 명동... 자율주행 차량을 타고 퇴근 중인 운전자는 안전하고 빠르게 이 도로를 빠져나가야 한다...</span></p>
+      <div class="btns">
+        <a class="btn primary" href="https://github.com/sjw0217a/Artificial_Intelligence_Driving"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>Code</a>
+        <a class="btn" href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving"><img src="assets/huggingface.svg" alt="" width="20" height="19">Datasets</a>
+        <a class="btn" href="assets/final-presentation.pdf" target="_blank" rel="noopener"><img src="assets/slides-checked.png" width="20" height="20" alt="" style="filter:invert(1)">발표자료</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="section-nav" aria-label="섹션 탐색">
+  <div class="wrap">
+    <a href="#abstract">요약</a>
+    <a href="#road">도로</a>
+    <a href="#scenario">시나리오</a>
+    <a href="#method">학습</a>
+    <a href="#results">결과</a>
+    <a href="#data">데이터</a>
+    <a href="#limits">한계</a>
+  </div>
+</nav>
+
+
+<section id="abstract">
+  <div class="wrap">
+    <div class="sec-no">요약</div>
+    <div class="stats">
+      <div class="stat"><div class="n">1.6%</div><div class="k">충돌률</div></div>
+      <div class="stat"><div class="n">0</div><div class="k">신호 위반</div></div>
+      <div class="stat"><div class="n">0</div><div class="k">경로 이탈</div></div>
+      <div class="stat"><div class="n">21.2초</div><div class="k">복잡 구간 통과 (평균)</div></div>
+    </div>
+    <h2>크리스마스 명동에서 자율주행차는 어떻게 길을 찾을까?</h2>
+    <div class="summary-layout">
+      <div>
+        <p class="intro">한국은행 앞에서 회현사거리까지 이어지는 명동 소공로를 교통 시뮬레이터 SUMO에 재현하고, 이 구간을 달리는 자율주행 모델을 학습시킨 뒤 주행 데이터를 수집했습니다. 크리스마스 시나리오에서는 미디어파사드를 보러 오는 차량이 늘고, 사진을 찍으려는 차량은 백화점 앞에서 속도를 늦춥니다. 자율주행차는 주변 차량의 흐름에 맞춰 속도를 조절하고, 정류장에 선 버스를 기다릴지 앞질러 갈지 판단해 우회전 차로에 진입해야 합니다.</p>
+        <p class="intro">모델은 먼저 <b>Behavior Cloning(BC)</b>로 규칙 기반 운전자의 주행을 모방했습니다. 이어서 <b>DAgger</b>를 적용해 모델이 직접 주행하며 마주친 상황에서 그 운전자가 어떤 행동을 선택할지 학습했습니다. 네 가지 교통 조건에서 총 1,200 Episode를 평가한 결과, <b>충돌률은 1.6%였고 신호 위반과 경로 이탈은 한 건도 없었습니다.</b></p>
+      </div>
+      <img src="assets/myeongdong-christmas.jpg" width="1200" height="842" loading="lazy" alt="크리스마스 조명이 켜진 명동 신세계백화점과 주변 도로의 야경">
+    </div>
+  </div>
+</section>
+
+<section id="road">
+  <div class="wrap">
+    <div class="sec-no">01 · 도로</div>
+    <h2>한국은행 앞 → 소공로 → 회현사거리</h2>
+    <p class="intro">자율주행차는 한국은행 앞 맨 왼쪽 차로에서 출발해 약 187 m 앞 회현사거리에서 우회전하려면 <b>맨 오른쪽 차로</b>까지 이동해야 합니다. 그 차로에는 버스정류장이 있어, 버스가 서 있으면 뒤에서 기다릴지 옆 차로로 지나갈지 판단해야 합니다. 이 가운데 신호 직후 약 150 m는 차로 변경과 합류가 몰리는 <b>복잡 구간</b>으로, 이 구간을 통과하는 데 걸린 시간을 비교합니다.</p>
+
+    <div class="pair road-comparison">
+      <figure>
+        <div class="frame"><img src="assets/satellite_annotated.jpg" alt="네이버 지도 위성사진 위에 한국은행 앞 신호교차로(①)에서 회현사거리(③)까지 약 187 m 구간, 차로 수 변화, 미디어파사드와 버스정류장 위치를 표시한 그림" width="1822" height="1816" loading="lazy"></div>
+        <figcaption>실제 위성사진. 지도: 네이버 지도.</figcaption>
+      </figure>
+      <figure>
+        <div class="frame">
+          <img src="assets/sumo_road.gif" alt="SUMO로 만든 소공로 도로망의 주행 화면. 노란 화살표는 자율주행차가 한국은행 앞에서 출발해 신세계 앞 버스정류장을 지나 회현사거리에서 우회전하는 경로를 나타낸다." width="640" height="640" loading="lazy">
+          <svg class="sumo-route" viewBox="0 0 640 640" aria-hidden="true">
+            <defs>
+              <marker id="sumo-route-arrow" markerWidth="4" markerHeight="4" refX="3.5" refY="2" orient="auto">
+                <path d="M0 0 L4 2 L0 4 Z" fill="currentColor"/>
+              </marker>
+            </defs>
+            <path d="M409 12 L394 61 Q389 79 398 92 Q409 110 403 134 L430 198 L466 290 L490 352 Q503 379 498 398 Q492 411 503 434 L565 555 Q575 577 552 591 L497 630"
+              fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" marker-end="url(#sumo-route-arrow)"/>
+          </svg>
+        </div>
+        <figcaption>SUMO로 만든 소공로 도로망(실행 화면).</figcaption>
+      </figure>
+    </div>
+
+    <h3>도로가 만드는 판단</h3>
+    <div class="cards two">
+      <div class="card"><h4 class="tag s1">신호 사이 엇갈림</h4><p>서로 다른 출구를 향해 차들이 엇갈립니다. 어느 틈으로 우회전 차로에 들어갈까요?</p><a class="to-result" href="#results" data-tab="tab-weave">결과 보기 →</a></div>
+      <div class="card"><h4 class="tag s1m">합류와 차로 감소</h4><p>우회 도로가 합류한 뒤 5차로가 4차로로 줄어듭니다. 합류 차량보다 먼저 들어갈까요, 양보할까요?</p><a class="to-result" href="#results" data-tab="tab-merge">결과 보기 →</a></div>
+      <div class="card"><h4 class="tag s2">버스정류장 정차</h4><p>정차한 버스가 우회전 차로를 막습니다. 뒤에서 기다릴까요, 옆 차로로 지나갈까요?</p><a class="to-result" href="#results" data-tab="tab-bus">결과 보기 →</a></div>
+      <div class="card christmas"><h4 class="tag s1b">크리스마스 구경 감속</h4><p>교통량은 평시의 1.5배이고, 미디어파사드 앞에서 차들이 느려집니다. 앞차를 따라갈까요, 차로를 바꿀까요?</p><a class="to-result" href="#results" data-tab="tab-xmas">결과 보기 →</a></div>
+    </div>
+
+  </div>
+</section>
+
+<section id="scenario">
+  <div class="wrap">
+    <div class="scenario-heading">
+      <div class="sec-no">02 · 시나리오</div>
+      <h2>평시와 크리스마스</h2>
+      <p class="intro">연말에는 신세계 본관 외벽 전체가 미디어파사드가 되고, 구경하느라 속도를 줄이는 차가 생깁니다. 이에 맞게 시뮬레이터에서 크리스마스 상황을 만들고 두 상황을 바꿔 가며 학습하고 평가했습니다.</p>
+    </div>
+
+    <div class="compare">
+      <div class="card">
+        <h4>평시</h4>
+        <ul>
+          <li>공격형·양보형 등 운전 성향을 섞은 일반 차량</li>
+          <li>실제 노선 버스 3개 (143·406·705, 약 19대/시)</li>
+          <li>신호 ①은 서울시 교통빅데이터 신호 이력 기준, 주기 170초</li>
+        </ul>
+      </div>
+      <div class="scenario-slot">
+        <div class="card x">
+          <div class="scenario-detail">
+            <h4>크리스마스</h4>
+            <ul>
+              <li>일반 차량의 교통량을 평시의 <strong>1.5배</strong>로 늘렸습니다. 이 중 <strong>30%</strong>는 미디어파사드를 구경하는 차량으로 설정해, 백화점 앞에서 <strong>약 11 km/h</strong>로 속도를 줄입니다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="sec-no">03 · 학습</div>
+    <h2>자율주행차는 어떻게 운전을 배울까: Behavior Cloning</h2>
+    <p>Behavior Cloning(BC)은 운전 시연을 보고 배우는 방법입니다. 모델은 매 순간 주변 상황을 보고, 시연 속 운전자처럼 가감속과 차로 변경을 선택하는 법을 익힙니다.</p>
+    <div class="cards two method-cards bc-cards">
+      <div class="card"><h4>Data</h4><p>주변 차량과 신호에 반응하는 규칙 기반 운전자가 평시와 크리스마스 상황에서 총 1,000 Episode를 주행하며 약 40만 개의 <b>(observation, action)</b> 쌍을 수집했습니다.</p></div>
+      <div class="card"><h4>Model</h4>
+        <svg class="bc-diagram" viewBox="0 0 370 105" role="img" aria-labelledby="bc-diagram-title">
+          <title id="bc-diagram-title">관측값 38개 → ReLU 은닉층 256개씩 두 층 → 가감속, 차로 선택, 가치 출력</title>
+          <g fill="none" stroke="#586c80" stroke-width="0.9">
+            <path d="M28 31L105 22 M28 31L105 40 M28 31L105 58 M28 31L105 76"/>
+            <path d="M28 49L105 22 M28 49L105 40 M28 49L105 58 M28 49L105 76"/>
+            <path d="M28 67L105 22 M28 67L105 40 M28 67L105 58 M28 67L105 76"/>
+            <path d="M105 22L180 22 M105 22L180 40 M105 22L180 58 M105 22L180 76"/>
+            <path d="M105 40L180 22 M105 40L180 40 M105 40L180 58 M105 40L180 76"/>
+            <path d="M105 58L180 22 M105 58L180 40 M105 58L180 58 M105 58L180 76"/>
+            <path d="M105 76L180 22 M105 76L180 40 M105 76L180 58 M105 76L180 76"/>
+            <path d="M180 22L247 25 M180 22L247 49 M180 22L247 73"/>
+            <path d="M180 40L247 25 M180 40L247 49 M180 40L247 73"/>
+            <path d="M180 58L247 25 M180 58L247 49 M180 58L247 73"/>
+            <path d="M180 76L247 25 M180 76L247 49 M180 76L247 73"/>
+          </g>
+          <g fill="#9caeba"><circle cx="28" cy="31" r="4.2"/><circle cx="28" cy="49" r="4.2"/><circle cx="28" cy="67" r="4.2"/></g>
+          <g fill="#90bde9"><circle cx="105" cy="22" r="4.2"/><circle cx="105" cy="40" r="4.2"/><circle cx="105" cy="58" r="4.2"/><circle cx="105" cy="76" r="4.2"/></g>
+          <g fill="#90bde9"><circle cx="180" cy="22" r="4.2"/><circle cx="180" cy="40" r="4.2"/><circle cx="180" cy="58" r="4.2"/><circle cx="180" cy="76" r="4.2"/></g>
+          <g fill="#edbd73"><circle cx="247" cy="25" r="4.2"/><circle cx="247" cy="49" r="4.2"/><circle cx="247" cy="73" r="4.2"/></g>
+          <g fill="#d8e0e7" font-size="13">
+            <text x="260" y="30">가감속 · 1</text><text x="260" y="54">차로 선택 · 3</text><text x="260" y="78">가치 V(s) · 1</text>
+            <g text-anchor="middle"><text x="28" y="98">입력 38</text><text x="105" y="98">ReLU 256</text><text x="180" y="98">ReLU 256</text></g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <h3 id="observations">모델이 보는 38가지 관측값</h3>
+    <p style="color:var(--muted)">실제 운전자나 차량 센서가 알 수 있는 정보만 넣었습니다.</p>
+    <div class="table">
+      <table>
+        <thead><tr><th>칸</th><th>내용</th><th>추가한 이유</th></tr></thead>
+        <tbody>
+          <tr><td>[0] ~ [30]</td><td class="wrap-cell">속도, 주변 5개 차로의 앞뒤 차 거리·상대속도, 차로 연결성, 차로 밀도</td><td class="wrap-cell">주변 차량을 보는 기본 관측</td></tr>
+          <tr><td>[31], [32]</td><td class="wrap-cell">다음 신호 상태, 정지선까지 거리</td><td class="wrap-cell">SUMO가 대신 서 주지 않으므로 신호를 봐야 함</td></tr>
+          <tr><td>[33], [34]</td><td class="wrap-cell">왼쪽·오른쪽 측면 레이더</td><td class="wrap-cell">기본 관측은 바로 옆 약 2.5 m 안의 차를 "없음"으로 봄</td></tr>
+          <tr><td>[35], [36]</td><td class="wrap-cell">다음 회전 방향, 회전 지점까지 거리 (내비게이션)</td><td class="wrap-cell">지도 수준 경로 안내</td></tr>
+          <tr><td>[37]</td><td class="wrap-cell">80 m 앞 정류장에 버스 정차 중 (카메라)</td><td class="wrap-cell">앞에 선 차가 20초 서는 버스인지 구분</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <details class="observations"><summary>학습 설정 및 실행 기록</summary>
+      <div class="table"><table class="training-record" aria-label="행동 복제 학습 설정 및 실행 기록">
+        <thead><tr><th scope="col">항목</th><th scope="col">값</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">학습 장비</th><td>M6 맥북 프로 CPU</td></tr>
+          <tr><th scope="row">소요 시간</th><td>전문가 시연 수집(8개 프로세스 병렬)과 BC 학습을 합쳐 약 40분</td></tr>
+          <tr><th scope="row">Optimizer</th><td>Adam</td></tr>
+          <tr><th scope="row">Epochs</th><td>30</td></tr>
+          <tr><th scope="row">Learning rate</th><td>0.0003</td></tr>
+          <tr><th scope="row">Batch size</th><td>256</td></tr>
+          <tr><th scope="row">Discount factor</th><td>0.99</td></tr>
+          <tr><th scope="row">Training seed</th><td>0</td></tr>
+          <tr><th scope="row">Lane-change weight</th><td>전체 행동의 0.66%인 차로 변경에 더 큰 가중치 적용</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+
+    <h2 style="margin-top:64px">시연에서 벗어난 상황에서도 주행하기: <a href="https://arxiv.org/abs/1011.0686" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:6px">DAgger</a></h2>
+    <p>차가 정지선 앞에서 조금만 더 가속해도 다음 순간의 위치와 속도는 시연과 달라집니다. BC로 학습한 모델을 baseline으로 삼아, DAgger는 시연에서 벗어난 상황에서도 어떤 행동을 선택해야 하는지 전문가에게 다시 배웁니다.</p>
+    <div class="cards two method-cards">
+      <div class="card"><h4>Data</h4><p>모델이 직접 주행하며 마주친 상황마다 규칙 기반 운전자의 정답 행동을 기록하고, 그 관측과 행동 쌍을 기존 시연 데이터에 더합니다.</p></div>
+      <div class="card"><h4>Model</h4><p>BC와 같은 신경망이 38개 관측값을 받아 가감속과 차로 선택을 예측합니다. 매 라운드에 모은 사례까지 포함해 전문가의 행동을 다시 학습합니다.</p></div>
+    </div>
+
+    <h3>DAgger 라운드</h3>
+    <div class="dagger-rounds">
+      <div class="tabs" role="tablist" aria-label="DAgger 라운드">
+        <button role="tab" id="tab-r1" aria-controls="round-1" aria-selected="true">1라운드</button>
+        <button role="tab" id="tab-r2" aria-controls="round-2" aria-selected="false" tabindex="-1">2라운드</button>
+        <button role="tab" id="tab-r3" aria-controls="round-3" aria-selected="false" tabindex="-1">3라운드</button>
+        <button role="tab" id="tab-rf" aria-controls="round-f" aria-selected="false" tabindex="-1">완성</button>
+      </div>
+      <div role="tabpanel" id="round-1" aria-labelledby="tab-r1">
+        <p class="r-lead"><b>BC Only</b>가 직접 400 Episode 주행.</p>
+        <div class="r-rows">
+          <div class="r-row"><span>신호 위반</span><div class="r-bar"><i style="width:100.0%"></i></div><b>42</b></div>
+          <div class="r-row"><span>경로 이탈</span><div class="r-bar"><i style="width:33.3%"></i></div><b>14</b></div>
+          <div class="r-row"><span>충돌</span><div class="r-bar"><i style="width:9.5%"></i></div><b>4</b></div>
+        </div>
+      </div>
+      <div role="tabpanel" id="round-2" aria-labelledby="tab-r2" hidden>
+        <p class="r-lead"><b>1라운드 모델</b>이 직접 400 Episode 주행.</p>
+        <div class="r-rows">
+          <div class="r-row"><span>신호 위반</span><div class="r-bar"><i style="width:2.4%"></i></div><b>1</b></div>
+          <div class="r-row"><span>경로 이탈</span><div class="r-bar"><i style="width:0.0%"></i></div><b>0</b></div>
+          <div class="r-row"><span>충돌</span><div class="r-bar"><i style="width:9.5%"></i></div><b>4</b></div>
+        </div>
+        <p class="r-data">이 주행의 모든 상태에 규칙 기반 운전자의 정답을 붙여 <b>153,519 step</b>을 더했습니다 (누적 686,160 step). 누적 데이터로 처음부터 다시 학습합니다.</p>
+      </div>
+      <div role="tabpanel" id="round-3" aria-labelledby="tab-r3" hidden>
+        <p class="r-lead"><b>2라운드 모델</b>이 직접 400 Episode 주행.</p>
+        <div class="r-rows">
+          <div class="r-row"><span>신호 위반</span><div class="r-bar"><i style="width:0.0%"></i></div><b>0</b></div>
+          <div class="r-row"><span>경로 이탈</span><div class="r-bar"><i style="width:2.4%"></i></div><b>1</b></div>
+          <div class="r-row"><span>충돌</span><div class="r-bar"><i style="width:0.0%"></i></div><b>0</b></div>
+        </div>
+        <p class="r-data">이 주행의 모든 상태에 규칙 기반 운전자의 정답을 붙여 <b>154,704 step</b>을 더했습니다 (누적 840,864 step). 누적 데이터로 처음부터 다시 학습합니다.</p>
+      </div>
+      <div role="tabpanel" id="round-f" aria-labelledby="tab-rf" hidden>
+        <p class="r-lead">3라운드 모델이 <b>BC + DAgger</b>입니다. 검증 1,200 Episode에서 BC Only와 비교한 결과 (위 라운드와 시드·Episode 수가 다릅니다):</p>
+        <div class="r-rows">
+          <div class="r-row"><span>신호 위반 · BC Only</span><div class="r-bar dim"><i style="width:83.7%"></i></div><b>128</b></div>
+          <div class="r-row"><span>신호 위반 · BC + DAgger</span><div class="r-bar"><i style="width:0%"></i></div><b>0</b></div>
+          <div class="r-row"><span>실패 · BC Only</span><div class="r-bar dim"><i style="width:100%"></i></div><b>153</b></div>
+          <div class="r-row"><span>실패 · BC + DAgger</span><div class="r-bar"><i style="width:15.0%"></i></div><b>23</b></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="comparison-title">VS <strong>BC Only</strong> &amp; <strong>BC + PPO</strong></h3>
+    <p>학습 때 보지 못한 상태(Out-of-Distribution, OOD)에 대응하는 두 방법을 비교했습니다. BC Only를 baseline으로 두고, 전문가의 행동을 추가로 배우는 DAgger와 주행 보상으로 정책을 fine-tuning하는 PPO를 평가했습니다. 검증 주행에서 실패한 횟수가 가장 적었던 <b>BC + DAgger</b>를 최종 모델로 채택했습니다.</p>
+    <div class="model-comparison">
+      <div class="tabs model-picker" role="tablist" aria-label="비교할 모델">
+        <button role="tab" id="tab-bc" aria-controls="run-bc" aria-selected="true">BC Only</button>
+        <button role="tab" id="tab-dagger" aria-controls="run-dagger" aria-selected="false" tabindex="-1">BC + DAgger</button>
+        <button role="tab" id="tab-ppo" aria-controls="run-ppo" aria-selected="false" tabindex="-1">BC + PPO</button>
+      </div>
+      <article class="model-run" role="tabpanel" aria-labelledby="tab-bc" id="run-bc">
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC Only가 크리스마스 장면 172에서 적신호에 진입해 충돌하는 주행"><source src="assets/scene172-bc.mp4" type="video/mp4"></video>
+        <div class="run-stats"><p>신호 위반과 경로 이탈이 세 모델 중 가장 많았습니다.</p>
+          <dl><div><dt>충돌</dt><dd>38건 (3.2%)</dd></div><div><dt>신호 위반</dt><dd>125건</dd></div><div><dt>경로 이탈</dt><dd>35건</dd></div><div><dt>시간초과</dt><dd><strong>0건</strong></dd></div><div><dt>실패 Episode</dt><dd>155회</dd></div><div><dt>복잡 구간 평균</dt><dd>21.48초</dd></div></dl>
+        </div>
+      </article>
+      <article class="model-run" role="tabpanel" aria-labelledby="tab-dagger" id="run-dagger" hidden>
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + DAgger가 크리스마스 장면 172에서 신호를 기다린 뒤 복잡 구간을 통과하는 주행"><source src="assets/scene172-dagger.mp4" type="video/mp4"></video>
+        <div class="run-stats"><p>신호 위반, 경로 이탈이 없고 충돌률도 가장 낮습니다. 세 모델 중 가장 안정적으로 주행합니다.</p>
+          <dl><div><dt>충돌</dt><dd><strong>19건 (1.6%)</strong></dd></div><div><dt>신호 위반</dt><dd><strong>0건</strong></dd></div><div><dt>경로 이탈</dt><dd><strong>0건</strong></dd></div><div><dt>시간초과</dt><dd>1건</dd></div><div><dt>실패 Episode</dt><dd><strong>20회</strong></dd></div><div><dt>복잡 구간 평균</dt><dd><strong>21.19초</strong></dd></div></dl>
+        </div>
+      </article>
+      <article class="model-run" role="tabpanel" aria-labelledby="tab-ppo" id="run-ppo" hidden>
+        <video loop controls playsinline muted preload="metadata" width="442" height="364" aria-label="BC + PPO가 크리스마스 장면 172에서 적신호를 위반하는 주행"><source src="assets/scene172-ppo.mp4" type="video/mp4"></video>
+        <div class="run-stats"><p>신호 위반, 충돌이 DAgger에 비해 많고, 복잡 구간 통과 시간도 평균 22.71초로 세 모델 중 가장 길었습니다.</p>
+          <dl><div><dt>충돌</dt><dd>25건 (2.1%)</dd></div><div><dt>신호 위반</dt><dd>10건</dd></div><div><dt>경로 이탈</dt><dd><strong>0건</strong></dd></div><div><dt>시간초과</dt><dd><strong>0건</strong></dd></div><div><dt>실패 Episode</dt><dd>33회</dd></div><div><dt>복잡 구간 평균</dt><dd>22.71초</dd></div></dl>
+        </div>
+      </article>
+    </div>
+    <details class="observations"><summary>DAgger · BC + PPO 학습 설정</summary>
+      <h4>DAgger</h4>
+      <p>매 라운드 모델이 직접 400회 주행하고(β = 0), 규칙 기반 운전자가 각 관측에 정답 행동을 붙였습니다. 세 라운드 모두 기존 시연과 새로 모은 데이터를 합쳐 처음부터 다시 학습했습니다.</p>
+      <div class="table"><table class="training-record" aria-label="DAgger 학습 장비 및 소요 시간">
+        <thead><tr><th scope="col">항목</th><th scope="col">값</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">학습 장비</th><td>M6 맥북 프로 CPU (DAgger, BC + PPO 공통)</td></tr>
+          <tr><th scope="row">DAgger 3라운드</th><td>라운드당 약 19분, 합계 약 1시간</td></tr>
+          <tr><th scope="row">최종 BC + DAgger</th><td>전문가 시연 수집과 BC 학습을 포함해 약 1시간 40분</td></tr>
+          <tr><th scope="row">β 쿨다운 3라운드</th><td>별도 참고 실험으로 약 1시간</td></tr>
+        </tbody>
+      </table></div>
+      <h4>BC + PPO · 3차 설정</h4>
+      <div class="table"><table class="training-record" aria-label="BC + PPO 3차 학습 설정">
+        <thead><tr><th scope="col">항목</th><th scope="col">값</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Initialization · Training steps</th><td>BC 가중치에서 시작해 400,000스텝 fine-tuning</td></tr>
+          <tr><th scope="row">실험별 소요 시간</th><td>1차 약 1시간 40분 · 2차 약 1시간 30분 · 3차 약 1시간 25분</td></tr>
+          <tr><th scope="row">Traffic</th><td>평시와 크리스마스 혼합, 버스 3배</td></tr>
+          <tr><th scope="row">Learning rate</th><td>0.00005</td></tr>
+          <tr><th scope="row">Rollout length</th><td>2,048스텝</td></tr>
+          <tr><th scope="row">Update epochs · Minibatch size</th><td>10 · 64</td></tr>
+          <tr><th scope="row">Discount factor γ · GAE λ</th><td>0.99 · 0.95</td></tr>
+          <tr><th scope="row">Clip range ε</th><td>0.2</td></tr>
+          <tr><th scope="row">Value function V(s) · Critic</th><td><math aria-label="정책 π에서 상태 s의 가치는 할인율 0.99를 적용한 누적 보상의 기댓값">
+                <msup><mi>V</mi><mi>π</mi></msup><mo>(</mo><mi>s</mi><mo>)</mo><mo>=</mo>
+                <msub><mi>𝔼</mi><mi>π</mi></msub><mo>[</mo>
+                <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>∞</mi></munderover>
+                <msup><mn>0.99</mn><mi>k</mi></msup><msub><mi>R</mi><mrow><mi>t</mi><mo>+</mo><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub>
+                <mo>∣</mo><msub><mi>S</mi><mi>t</mi></msub><mo>=</mo><mi>s</mi><mo>]</mo>
+              </math></td></tr>
+          <tr><th scope="row">Value loss coefficient</th><td>0.5</td></tr>
+          <tr><th scope="row">Entropy coefficient (전체 · 차로 선택)</th><td>0 · 0.01</td></tr>
+          <tr><th scope="row">Max gradient norm</th><td>0.5</td></tr>
+          <tr><th scope="row">Initial log σ (가감속)</th><td>−1.5</td></tr>
+          <tr><th scope="row">BC regularization coefficient</th><td>0.1 (규칙 기반 운전자 시연 사용)</td></tr>
+          <tr><th scope="row">Critic warmup</th><td>처음 5회는 가치 출력층만 업데이트</td></tr>
+          <tr><th scope="row">Red-light violation handling</th><td>학습 중에는 즉시 종료하고, 평가 중에는 계속 주행하며 위반을 집계</td></tr>
+        </tbody>
+      </table></div>
+      <h4>평가 소요 시간</h4>
+      <p>10개 프로세스로 병렬 실행했습니다. 검증 평가는 모델당 1,200 Episode에 약 15분, 최종 평가는 3개 모델에서 각각 1,200 Episode를 실행해 총 약 35분이 걸렸습니다.</p>
+    </details>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <div class="sec-no">04 · 결과</div>
+    <h2>주변 차량과 적절히 상호작용하며 주행한다</h2>
+    <div class="tabs" role="tablist" aria-label="상황별 비교">
+      <button role="tab" id="tab-weave" aria-controls="panel-weave" aria-selected="true">신호 사이 엇갈림</button>
+      <button role="tab" id="tab-merge" aria-controls="panel-merge" aria-selected="false" tabindex="-1">합류와 차로 감소</button>
+      <button role="tab" id="tab-bus" aria-controls="panel-bus" aria-selected="false" tabindex="-1">버스정류장 정차</button>
+      <button role="tab" id="tab-xmas" aria-controls="panel-xmas" aria-selected="false" tabindex="-1">크리스마스 구경 감속</button>
+    </div>
+    <div role="tabpanel" id="panel-weave" aria-labelledby="tab-weave">
+      <figure>
+        <div class="frame"><img src="training/strict/video/tab_weave.gif" alt="합류 지점 앞에서 BC Only는 합류하는 차 쪽으로 붙다가 충돌하고, BC + DAgger는 합류하는 차를 먼저 보낸 뒤 옮겨 가는 장면" width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">신호를 지나 얼마 안 가 우회 도로 차들이 오른쪽에서 합류합니다. 두 모델은 같은 시점에 신호를 통과했습니다. BC Only는 합류 지점 전에 맨 오른쪽 차로까지 옮겼다가 합류하는 차와 충돌했습니다. BC + DAgger는 한 차로만 먼저 옮기고, 합류 지점을 지나 차로가 넓어진 뒤 다시 오른쪽으로 이동해 복잡 구간을 14.5초 만에 통과했습니다.</p>
+    </div>
+    <div role="tabpanel" id="panel-merge" aria-labelledby="tab-merge" hidden>
+      <figure>
+        <div class="frame"><img src="training/strict/video/tab_merge.gif" alt="5차로가 4차로로 줄어드는 곳에서 BC Only는 차로 끝에 멈춰 있다가 충돌하고, BC + DAgger는 차로가 줄어들기 전에 틈을 찾아 지나가는 장면" width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">합류 지점을 지나면 오른쪽 두 차로가 하나로 합쳐집니다. 두 모델 모두 줄어드는 차로로 들어왔지만, BC Only는 차로 끝에서 끼어들지 못하고 약 20초를 서 있다가 충돌했습니다. BC + DAgger는 차로가 줄어들기 전에 틈을 찾아 들어가 복잡 구간을 14.5초 만에 통과했습니다.</p>
+    </div>
+    <div role="tabpanel" id="panel-bus" aria-labelledby="tab-bus" hidden>
+      <figure>
+        <div class="frame"><img src="training/strict/video/tab_bus.gif" alt="BC Only는 우회전 차로의 정류장 버스 뒤에서 기다리고, BC + DAgger는 한 칸 왼쪽 차로로 버스를 지나 우회전 차로로 돌아가는 장면" width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">우회전 차로에 정류장이 있어서, 버스가 서 있으면 뒤에서 기다리거나 옆 차로로 지나가야 합니다. BC Only는 버스 뒤에서 기다려 복잡 구간에 41.0초가 걸렸습니다. BC + DAgger는 한 칸 왼쪽 차로로 버스를 지나간 뒤, 회현사거리 앞 넓어진 곳에서 우회전 차로로 돌아가 31.5초가 걸렸습니다.</p>
+    </div>
+    <div role="tabpanel" id="panel-xmas" aria-labelledby="tab-xmas" hidden>
+      <figure>
+        <div class="frame"><img src="training/strict/video/tab_xmas.gif" alt="미디어파사드 앞에서 BC Only는 구경하며 느려진 차들 사이에서 천천히 따라가고, BC + DAgger는 미리 우회전 차로로 옮겨 빠져나가는 장면" width="900" height="490" loading="lazy"></div>
+      </figure>
+      <p class="panel-text">크리스마스에는 일반 차량의 30%가 미디어파사드 앞을 11 km/h로 지나갑니다. BC Only는 가운데 차로에서 구경하는 차들을 따라가 복잡 구간에 40.0초가 걸렸고, BC + DAgger는 미리 우회전 차로로 옮겨 15.0초 만에 빠져나갔습니다.</p>
+    </div>
+
+    <h2 style="margin-top:56px">더 혼잡한 조건에서도 낮은 충돌률을 유지한다</h2>
+    <div class="table">
+      <table>
+        <thead><tr><th>조건</th><th class="num">충돌</th><th class="num">신호 위반</th><th class="num">경로 이탈</th><th class="num">복잡 구간</th></tr></thead>
+        <tbody>
+          <tr><td>평시</td><td class="num">0 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">14.9초</td></tr>
+          <tr><td>크리스마스</td><td class="num">2 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">21.9초</td></tr>
+          <tr><td>크리스마스 + 교통량 1.3배 (학습에 안 쓴 조건)</td><td class="num">5 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">25.4초</td></tr>
+          <tr><td>크리스마스 + 버스 3배</td><td class="num">12 / 300</td><td class="num">0</td><td class="num">0</td><td class="num">22.7초</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure>
+      <div class="frame"><img src="training/strict/page_results.png" alt="최종 평가 1,200 Episode에서 BC Only, BC + DAgger, BC + PPO의 충돌, 신호 위반, 경로 이탈·시간초과 비율 막대그래프" width="2000" height="840" loading="lazy"></div>
+    </figure>
+  </div>
+</section>
+
+<section id="data">
+  <div class="wrap">
+    <div class="sec-no">05 · 데이터</div>
+    <h2>주행 기록을 POMDP transition으로 남긴다</h2>
+    <div class="stats three" style="margin:0 0 20px">
+      <div class="stat"><div class="n">10,149,487</div><div class="k">transition (0.5초 스텝)</div></div>
+      <div class="stat"><div class="n">26,500</div><div class="k">Episode (평시 13,500 · 크리스마스 13,000)</div></div>
+      <div class="stat"><div class="n tex" data-tex="(\htmlData{tip=관측 (38개)}{o_t},\ \htmlData{tip=행동 (가감속과 차로 변경)}{a_t},\ \htmlData{tip=보상}{r_t},\ \htmlData{tip=다음 관측}{o_{t+1}},\ \htmlData{tip=종료 여부 (terminated / truncated)}{d_t},\ \htmlData{tip=SUMO 내부 상태}{s_t},\ \htmlData{tip=다음 SUMO 내부 상태}{s_{t+1}})">(o<sub>t</sub>, a<sub>t</sub>, r<sub>t</sub>, o<sub>t+1</sub>, d<sub>t</sub>, s<sub>t</sub>, s<sub>t+1</sub>)</div><div class="k">transition 구성</div></div>
+    </div>
+    <p style="margin-bottom:28px"><a href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving">Hugging Face에서 데이터셋 보기 ↗</a></p>
+
+    <h3>레코드 구성</h3>
+    <p style="color:var(--muted)">모델이 실제로 본 <b>관측</b>과 함께, 정책 입력에는 쓰지 않는 <b>시뮬레이터 내부 상태</b>도 같이 남겨 belief·representation 학습에 쓸 수 있게 했습니다.</p>
+    <div class="table">
+      <table>
+        <thead><tr><th>키</th><th>자료형</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td><code>observation</code></td><td><code>float[38]</code></td><td class="wrap-cell">모델이 본 관측 38개 (<a href="#observations">03 · 학습의 관측값 표</a>)</td></tr>
+          <tr><td><code>action_raw</code>, <code>action.*</code></td><td><code>float[2]</code>, <code>dict</code></td><td class="wrap-cell">가감속과 차로 변경 출력, 실제로 적용된 차로 변경 (−1, 0, +1)</td></tr>
+          <tr><td><code>reward</code>, <code>terminated</code>, <code>truncated</code></td><td><code>float</code>, <code>bool</code></td><td class="wrap-cell">보상과 Episode 종료 여부</td></tr>
+          <tr><td><code>state</code></td><td><code>dict</code></td><td class="wrap-cell">SUMO 내부 상태</td></tr>
+          <tr><td><code>detected_vehicles</code></td><td><code>list[dict]</code></td><td class="wrap-cell">관측과 같은 시점에 감지한 주변 차량 좌표</td></tr>
+          <tr><td><code>event.*</code></td><td><code>dict</code></td><td class="wrap-cell">충돌, 도착, 경로 이탈, 신호 위반, Teleport, 차로 변경 전후를 따로 기록</td></tr>
+          <tr><td><code>next_observation</code>, <code>next_state</code></td><td><code>float[38]</code>, <code>dict</code></td><td class="wrap-cell">다음 스텝의 관측과 상태</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="sec-no">06 · 한계</div>
+    <h2>한계점</h2>
+
+    <h3>센서 오차에 약하다</h3>
+    <p style="color:var(--muted)">실제 차량의 센서 관측에는 오차가 있습니다. 오차 없는 관측으로 학습한 BC + DAgger에 관측 오차를 넣어 평가하니, 앞뒤 차 거리 오차 1 m나 0.5초 지연처럼 작은 오차에도 실패율이 크게 올라갔습니다. 실제 차에 쓰려면 오차를 섞은 관측으로 학습해야 합니다.</p>
+    <figure>
+      <div class="frame"><img src="training/strict/page_sensor_noise.png" alt="관측 오차 종류별 실패율 막대그래프. 오차 없음 3%, 앞뒤 차 거리 오차 0.5 m 2%, 1 m 62%, 측면 레이더 경고 10% 놓침 18%, 관측 0.5초 지연 20%, 정지선 거리 오차 2 m 22%, 적·황신호를 10% 녹색으로 읽음 22%" width="2000" height="840" loading="lazy"></div>
+    </figure>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="skku" href="https://www.skku.edu" target="_blank" rel="noopener" style="color:var(--text);font-weight:600;margin:0 0 8px"><img src="assets/skku.jpg" alt="" width="22" height="22">성균관대학교</a>
+    <div class="authors">
+      <a href="https://github.com/sjw0217a">송지원(전자전기공학부)</a>
+      <a href="https://github.com/junminkim1111">김준민(전자전기공학부)</a>
+      <a href="https://github.com/heerohyoon">윤희로(전자전기공학부)</a>
+      <a href="https://github.com/Gwonyeok">강권혁(시스템경영학부/전자전기공학부)</a>
+    </div>
+    <div class="row">
+      <div>자율주행인공지능및제어 · 2026</div>
+      <div class="footer-links">
+        <a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>GitHub</a>
+        <a href="https://huggingface.co/datasets/JiYeaha/Artificial_Intelligence_Driving"><img src="assets/huggingface.svg" alt="" width="17" height="16">Hugging Face</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+
+<script src="assets/project.js"></script>
+</body>
+</html>
