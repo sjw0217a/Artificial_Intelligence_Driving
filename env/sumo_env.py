@@ -58,6 +58,8 @@ import traci
 import traci.constants as tc
 from sumolib import checkBinary
 
+from env.tls_encoding import encode_tls_state
+
 
 class SumoHighwayEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
@@ -923,6 +925,7 @@ class SumoHighwayEnv(gym.Env):
 
         agent가 실제로 받는 입력은 _get_obs()의 부분관측이고, 이 메서드는
         분석/지도신호용 privileged state만 수집한다. 정책 입력으로 쓰지 않는다.
+        tls는 조회 즉시 연결별 숫자 리스트로 인코딩한다 (녹 1 / 황 0 / 적 -1).
         """
         if self.ego_id not in traci.vehicle.getIDList():
             return {"ego_alive": False}
@@ -958,7 +961,7 @@ class SumoHighwayEnv(gym.Env):
                 "ego_lane_pos": float(traci.vehicle.getLanePosition(self.ego_id)),
                 "vehicles": vehicles,
                 "ego_route": list(traci.vehicle.getRoute(self.ego_id)),
-                "tls": {t: traci.trafficlight.getRedYellowGreenState(t)
+                "tls": {t: encode_tls_state(traci.trafficlight.getRedYellowGreenState(t))
                         for t in traci.trafficlight.getIDList()},
             }
         except traci.TraCIException:

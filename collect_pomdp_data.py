@@ -3,7 +3,7 @@
 저장 단위는 POMDP transition 하나다:
     (o_t, a_t, r_t, o_{t+1}, terminated, truncated, s_t, s_{t+1})
 
-- o_t / o_{t+1}: agent가 실제로 보는 부분관측 (37차원, env/mdp_config.py 참고)
+- o_t / o_{t+1}: agent가 실제로 보는 부분관측 (기본 38차원, env/mdp_config.py 참고)
 - a_t: [가감속 raw, 차선변경 raw]
 - lane_change: 실제 환경에 적용된 {-1, 0, +1}
 - s_t / s_{t+1}: SUMO 내부의 privileged simulator state.
@@ -16,6 +16,9 @@
   에피소드 마지막 스텝(terminated or truncated)에만 기록한다.
   읽을 때는 iter_transitions()가 채워서 돌려준다.
 - NPZ의 감지 차량 좌표는 object 배열(pickle) 대신 flat (M, 2) + offsets로 저장한다.
+- 신호는 수집 시점부터 숫자 리스트(녹 1 / 황 0 / 적 -1)로 기록한다.
+  JSONL: state.tls.J1/J3 및 존재하는 next_state.tls.J1/J3.
+  NPZ: 현재 시점 state.tls.J1 (N, 5), state.tls.J3 (N, 7), int8 정수 배열.
 
 속도:
 - --workers N으로 SUMO 인스턴스 N개를 병렬로 돌린다.
@@ -58,6 +61,7 @@ from env.cli import add_scenario_args, apply_scenario_args, private_sumo_dir
 from env.mdp_config import SIMULATION, OBSERVATION, ACTION
 from env import road_builder
 from env.sumo_env import SumoHighwayEnv
+from env.tls_encoding import TLS_VECTOR_LENGTHS
 from train import HPARAMS, REWARD  # 학습과 같은 보상 조건 + PPO 네트워크 구조
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -223,6 +227,7 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
     term_buf, trunc_buf, episode_buf, step_buf = [], [], [], []
     # 스텝별 감지 차량 (x,y)는 한 줄로 이어 붙이고, 스텝 경계는 offsets로 기록한다.
     detected_xy_buf, detected_offsets = [], [0]
+    tls_buf = {tls_id: [] for tls_id in TLS_VECTOR_LENGTHS}
 
     total = 0
     try:
@@ -233,6 +238,10 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
             for ep in episodes:
                 obs, _ = env.reset(seed=args.seed + ep)
                 state_t = env.get_privileged_state()
+                for tls_id, length in TLS_VECTOR_LENGTHS.items():
+                    values = state_t.get("tls", {}).get(tls_id)
+                    if not isinstance(values, list) or len(values) != length:
+                        raise ValueError(f"{tls_id} 신호는 길이 {length}의 숫자 리스트여야 합니다: {values!r}")
                 done = False
                 t = 0
                 ep_return = 0.0
@@ -307,6 +316,8 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
                     trunc_buf.append(bool(truncated))
                     episode_buf.append(int(ep))
                     step_buf.append(t)
+                    for tls_id in tls_buf:
+                        tls_buf[tls_id].append(state_t["tls"][tls_id])
                     detected_xy_buf.extend((d["x"], d["y"]) for d in detected)
                     detected_offsets.append(len(detected_xy_buf))
 
@@ -336,6 +347,8 @@ def collect(args, sumocfg, episodes, worker_id, jsonl_path, npz_path, tag=""):
         # 스텝 i의 좌표: detected_xy[detected_offsets[i]:detected_offsets[i+1]]
         detected_xy=np.asarray(detected_xy_buf, dtype=np.float32).reshape(-1, 2),
         detected_offsets=np.asarray(detected_offsets, dtype=np.int64),
+        **{f"state.tls.{tls_id}": np.asarray(values, dtype=np.int8).reshape(
+            total, TLS_VECTOR_LENGTHS[tls_id]) for tls_id, values in tls_buf.items()},
     )
     return total
 
