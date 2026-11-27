@@ -41,6 +41,7 @@
     <a href="#results">Results</a>
     <a href="#data">Dataset</a>
     <a href="#limits">Limitations</a>
+    <a href="#reproduction">Reproduction</a>
   </div>
 </nav>
 
@@ -349,6 +350,47 @@
     <figure>
       <div class="frame"><img src="assets/en/sensor_noise.png" alt="Failure rates: clean observations 3%, vehicle gap error of 0.5 m 2%, gap error of 1 m 62%, missed side alerts 18%, 0.5 s delay 20%, stop-line error 22%, signal misclassification 22%." width="2000" height="840" loading="lazy"></div>
     </figure>
+  </div>
+</section>
+
+<section id="reproduction">
+  <div class="wrap">
+    <div class="sec-no">07 · Reproduction</div>
+    <h2>Reproduce the experiments</h2>
+    <details>
+      <summary>Step 1 · Set up the environment</summary>
+      <p>Install SUMO 1.27.1 and set <code>SUMO_HOME</code> to its installation directory. Run all commands from the repository root.</p>
+      <pre><code>export PATH="$SUMO_HOME/bin:$PATH"
+python -m pip install -r requirements.txt</code></pre>
+    </details>
+    <details>
+      <summary>Step 2 · Run the simulation and drive with a checkpoint</summary>
+      <p>Check the road network with a ten-minute simulation, then view Christmas traffic and drive with the final checkpoint. Omit <code>--christmas</code> for everyday traffic.</p>
+      <pre><code>python view_road.py --nogui --seconds 600          # Build the road network and run a 10-minute check
+python view_road.py --christmas --speed 4          # View Christmas traffic in the GUI at 4× speed
+python test.py models/strict_bc_dagger.pt --christmas</code></pre>
+    </details>
+    <details>
+      <summary>Step 3 · Train the models</summary>
+      <p>Train BC on 1,000 expert demonstrations, then run three DAgger rounds of 400 episodes each.</p>
+      <pre><code>WORKERS=8 bash scripts/training/train_strict_model.sh</code></pre>
+        <p>To reproduce the third PPO configuration, use the BC checkpoint and demonstrations generated above.</p>
+        <pre><code>RUN=strict_ppo3 EXTRA=--warmup-value-head-only REWARD_EXTRA=red_light_terminate=1 \
+  bash scripts/training/train_strict_ppo.sh</code></pre>
+    </details>
+    <details>
+      <summary>Step 4 · Evaluate the checkpoints</summary>
+      <p>Evaluate the final checkpoint for 100 Christmas episodes. Repeat with <code>models/strict_bc.pt</code> and <code>models/strict_bc_ppo3.pt</code> using the same seed and a separate JSON output file for each model.</p>
+      <pre><code>python eval_section_time.py models/strict_bc_dagger.pt --christmas \
+  --episodes 100 --eval-seed 2026111724 --json eval_xmas.json</code></pre>
+        <p>The full evaluation uses three seeds per condition and 100 episodes per seed, for 1,200 episodes per model. For the flags and seeds, see the <a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving/blob/main/README.md#reproduce-the-evaluation">README</a>.</p>
+    </details>
+    <details>
+      <summary>Step 5 · Collect driving data</summary>
+      <p>Collect everyday driving data with the final model. For Christmas traffic, add <code>--christmas</code> and change the output name to <code>--name strict_xmas</code>.</p>
+      <pre><code>python collect_pomdp_data.py --model models/strict_bc_dagger.pt \
+  --episodes 1000 --workers 8 --seed 300 --name strict_normal</code></pre>
+    </details>
   </div>
 </section>
 

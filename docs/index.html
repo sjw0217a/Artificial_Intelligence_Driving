@@ -47,6 +47,7 @@
     <a href="#results">결과</a>
     <a href="#data">데이터</a>
     <a href="#limits">한계</a>
+    <a href="#reproduction">실험 재현</a>
   </div>
 </nav>
 
@@ -425,6 +426,47 @@
     <figure>
       <div class="frame"><img src="training/strict/page_sensor_noise.png" alt="관측 오차 종류별 실패율 막대그래프. 오차 없음 3%, 앞뒤 차 거리 오차 0.5 m 2%, 1 m 62%, 측면 레이더 경고 10% 놓침 18%, 관측 0.5초 지연 20%, 정지선 거리 오차 2 m 22%, 적·황신호를 10% 녹색으로 읽음 22%" width="2000" height="840" loading="lazy"></div>
     </figure>
+  </div>
+</section>
+
+<section id="reproduction">
+  <div class="wrap">
+    <div class="sec-no">07 · 재현</div>
+    <h2>실험 재현</h2>
+    <details>
+      <summary>Step 1 · 환경 설치</summary>
+      <p>SUMO 1.27.1을 설치하고 <code>SUMO_HOME</code>을 설치 디렉터리로 설정하세요. 모든 명령은 저장소 루트에서 실행합니다.</p>
+      <pre><code>export PATH="$SUMO_HOME/bin:$PATH"
+python -m pip install -r requirements.txt</code></pre>
+    </details>
+    <details>
+      <summary>Step 2 · 도로 시뮬레이션과 모델 실행</summary>
+      <p>도로를 10분간 검증한 뒤 크리스마스 교통과 최종 모델의 주행을 확인합니다. 평시는 <code>--christmas</code>를 생략하세요.</p>
+      <pre><code>python view_road.py --nogui --seconds 600          # Build the road network and run a 10-minute check
+python view_road.py --christmas --speed 4          # View Christmas traffic in the GUI at 4× speed
+python test.py models/strict_bc_dagger.pt --christmas</code></pre>
+    </details>
+    <details>
+      <summary>Step 3 · 모델 학습</summary>
+      <p>규칙 기반 운전자의 시연 1,000회로 BC를 학습하고 DAgger를 라운드당 400회씩 세 번 수행합니다.</p>
+      <pre><code>WORKERS=8 bash scripts/training/train_strict_model.sh</code></pre>
+        <p>비교용 PPO 3차 설정은 앞서 생성한 BC 체크포인트와 시연 데이터를 사용합니다.</p>
+        <pre><code>RUN=strict_ppo3 EXTRA=--warmup-value-head-only REWARD_EXTRA=red_light_terminate=1 \
+  bash scripts/training/train_strict_ppo.sh</code></pre>
+    </details>
+    <details>
+      <summary>Step 4 · 성능 평가</summary>
+      <p>아래 예시는 크리스마스 조건에서 최종 모델을 100회 평가합니다. 같은 시드에서 <code>models/strict_bc.pt</code>와 <code>models/strict_bc_ppo3.pt</code>도 비교할 수 있습니다. 각 모델의 JSON 출력 이름을 다르게 지정하세요.</p>
+      <pre><code>python eval_section_time.py models/strict_bc_dagger.pt --christmas \
+  --episodes 100 --eval-seed 2026111724 --json eval_xmas.json</code></pre>
+        <p>공식 평가는 네 가지 조건에서 시드 3개당 각각 100회, 모델별 총 1,200회입니다. 조건별 옵션과 시드는 <a href="https://github.com/sjw0217a/Artificial_Intelligence_Driving/blob/main/README.md#reproduce-the-evaluation">README</a>에서 확인할 수 있습니다.</p>
+    </details>
+    <details>
+      <summary>Step 5 · 주행 데이터 수집</summary>
+      <p>최종 모델로 평시 데이터를 수집합니다. 크리스마스 데이터를 별도로 저장하려면 <code>--christmas</code>를 추가하고 이름을 <code>--name strict_xmas</code>로 바꾸세요.</p>
+      <pre><code>python collect_pomdp_data.py --model models/strict_bc_dagger.pt \
+  --episodes 1000 --workers 8 --seed 300 --name strict_normal</code></pre>
+    </details>
   </div>
 </section>
 

@@ -254,3 +254,9 @@ html[lang=en] body{word-break:normal}
 .r-bar i{display:block;height:100%;background:var(--pink);border-radius:99px;transition:width .4s ease}
 .r-bar.dim i{background:var(--dim)}
 @media (prefers-reduced-motion:reduce){.r-bar i{transition:none}}
+
+#reproduction details{border-bottom:1px solid var(--line)}
+#reproduction summary{padding:14px 0;cursor:pointer;font-weight:600}
+#reproduction details p{color:var(--muted)}
+#reproduction pre{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:0 0 18px}
+#reproduction pre code{background:none;padding:0}
